@@ -38,3 +38,4 @@ img/users/*
 !img/products/.gitkeep
 !img/users/.gitkeep
 
+/src/google-id.ts
