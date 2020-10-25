@@ -8,6 +8,7 @@ import { User } from 'src/entities/User';
 import { PhotoResponse } from './interfaces/photo-response';
 import { UserResponseInterceptor } from './interceptors/user-response.interceptor.ts.interceptor';
 import { AuthGuard } from '@nestjs/passport';
+import { Request, request } from 'express';
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))
@@ -80,10 +81,11 @@ export class UsersController {
     async updateAvatar(
         @AuthUser() authUser: User,
         @Body(new ValidationPipe({ transform: true, whitelist: true })) photoDto: UpdatePhotoDto,
+        @Req() req: Request,
     ): Promise<PhotoResponse> {
         try {
             const photo = await this.usersService.updatePhoto(authUser.id, photoDto);
-            return { photo };
+            return { photo: req.protocol + '://' + req.headers.host + '/' + photo };
         } catch (e) {
             throw new NotFoundException();
         }

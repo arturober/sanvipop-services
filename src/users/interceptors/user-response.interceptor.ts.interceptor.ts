@@ -9,9 +9,9 @@ export class UserResponseInterceptor implements NestInterceptor {
     const req = context.switchToHttp().getRequest();
     const baseUrl = req.protocol + '://' + req.headers.host + '/';
     return next.handle().pipe(
-      map((p: User) => {
-        p.photo = p.photo && baseUrl + p.photo;
-        return {product: p};
+      map((u: User) => {
+        u.photo = u.photo && baseUrl + u.photo;
+        return {user: u};
       })
     );
   }
