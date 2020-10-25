@@ -1,7 +1,7 @@
-import { UserResponse.Interceptor.TsInterceptor } from './user-response.interceptor.ts.interceptor';
+import { UserResponseInterceptor } from './user-response.interceptor';
 
 describe('UserResponse.Interceptor.TsInterceptor', () => {
   it('should be defined', () => {
-    expect(new UserResponse.Interceptor.TsInterceptor()).toBeDefined();
+    expect(new UserResponseInterceptor()).toBeDefined();
   });
 });

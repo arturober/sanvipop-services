@@ -6,7 +6,7 @@ import { UpdatePhotoDto } from './dto/update-photo.dto';
 import { AuthUser } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/entities/User';
 import { PhotoResponse } from './interfaces/photo-response';
-import { UserResponseInterceptor } from './interceptors/user-response.interceptor.ts.interceptor';
+import { UserResponseInterceptor } from './interceptors/user-response.interceptor';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, request } from 'express';
 
