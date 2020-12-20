@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Param, ParseIntPipe, Put, Post, Body, ValidationPipe, HttpCode, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Param, ParseIntPipe, Put, Post, Body, ValidationPipe, HttpCode, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthUser } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/entities/User';
@@ -32,6 +32,8 @@ export class TransactionsController {
         } catch(e) {
             if(e.code === 'ER_DUP_ENTRY') {
                 throw new ForbiddenException('You can\'t rate a product transaction more than once');
+            } else {
+                throw new BadRequestException(e);
             }
         }
     }
