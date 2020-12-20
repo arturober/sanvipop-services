@@ -33,7 +33,7 @@ export class TransactionsController {
             if(e.code === 'ER_DUP_ENTRY') {
                 throw new ForbiddenException('You can\'t rate a product transaction more than once');
             } else {
-                throw new BadRequestException(e);
+                throw e;
             }
         }
     }
