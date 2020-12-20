@@ -47,6 +47,7 @@ export class ProductsRepository extends EntityRepository<Product> {
             `exists(SELECT 1 FROM product_bookmark pb WHERE pb.iduser = ${idLogged} AND pb.idProduct = p.id) AS bookmarked`
         ])
         .join('p.owner', 'u')
+        .join('p.photos', 'ph')
         .join('p.rating', 't', undefined, 'leftJoin')
         .where({ id: idProduct })
         .getSingleResult();
