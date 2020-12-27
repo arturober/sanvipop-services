@@ -31,6 +31,7 @@
 - [Servicios web - Colecciones](#servicios-web---colecciones)
   - [Colección /auth](#colección-auth)
     - [**POST /auth/login**](#post-authlogin)
+    - [**POST /auth/google**](#post-authgoogle)
 
 # Servicios web applicación SanviPop
 
@@ -92,6 +93,8 @@ Authorization: Bearer auth_token
 
 ## Colección /auth
 
+### **POST /auth/login**
+
 El servicio comprueba si un usuario y contraseña son correctos, devolviendo un token de autenticación (JWT) si todo va bien. Opcionalmente se puede enviar la posición del usuario para que la actualice.
 
 Ejemplo de petición:
@@ -123,7 +126,18 @@ En caso de error en el login (usuario y contraseña no válidos), se devolverá 
 }
 ```
 
-### **POST /auth/login**
+### **POST /auth/google**
 
+Este servicio recibe el campo **id_token** que devuelve la identificación mediante Google en el cliente. Lo valida y comprueba el correo en la base de datos. Si el correo existe funciona como un login normal, y si no existe registra al usuario (a partir de los datos obtenidos de Google) en la base de datos. Devuelve un token de autenticación válido para el servidor (como el login).
+
+Ejemplo de envío (lat y lng son opcionales):
+
+```json
+{
+    "token": "id_token de Google",
+    "lat": 35.4534,
+    "lng": -0.54673
+}
+```
 
 

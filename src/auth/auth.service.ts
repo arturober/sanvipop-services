@@ -115,7 +115,7 @@ export class AuthService {
                     type: 'large',
                 },
             };
-            const respImg = request(optionsImg);
+            const respImg = await request(optionsImg);
             const photo = await this.imageService.downloadImage('users', respImg.url);
             user = {
                 email: respUser.email,
