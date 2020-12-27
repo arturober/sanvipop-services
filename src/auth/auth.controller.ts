@@ -61,16 +61,16 @@ export class AuthController {
 
   @Post('facebook')
   async loginFacebook(@Body(new ValidationPipe({ transform: true, whitelist: true})) tokenDto: LoginTokenDto): Promise<TokenResponse> {
-    //try {
+    try {
       return await this.authService.loginFacebook(tokenDto);
-    /*} catch (e) {
+    } catch (e) {
       throw new UnauthorizedException(
         {
           status: HttpStatus.UNAUTHORIZED,
           error: 'Facebook login failed',
         },
       );
-    }*/
+    }
   }
 
   @Get('validate')

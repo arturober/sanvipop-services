@@ -114,9 +114,10 @@ export class AuthService {
                     access_token: tokenDto.token,
                     type: 'large',
                 },
+                encoding: null
             };
             const respImg = await request(optionsImg);
-            const photo = await this.imageService.downloadImage('users', respImg.url);
+            const photo = await this.imageService.saveImageBinary('users', respImg);
             user = {
                 email: respUser.email,
                 name: respUser.name,

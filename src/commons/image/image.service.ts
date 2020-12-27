@@ -17,6 +17,17 @@ export class ImageService {
         });
     }
 
+    saveImageBinary(dir: string, img: BinaryType): Promise<string> {
+      const file = `${Date.now()}.jpg`;
+      return new Promise((resolve, reject) => {
+        const filePath = path.join('img', dir, file);
+        fs.writeFile(filePath, img, 'binary', (err) => {
+          if (err) { reject(err); }
+          resolve(`img/${dir}/${file}`);
+        });
+      });
+    }
+
     async downloadImage(dir: string, url: string): Promise<string> {
       const file = `${Date.now()}.jpg`;
       const filePath = path.join('img', dir, file);
