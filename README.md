@@ -32,6 +32,7 @@
   - [Colección /auth](#colección-auth)
     - [**POST /auth/login**](#post-authlogin)
     - [**POST /auth/google**](#post-authgoogle)
+    - [**POST /auth/facebook**](#post-authfacebook)
 
 # Servicios web applicación SanviPop
 
@@ -140,4 +141,20 @@ Ejemplo de envío (lat y lng son opcionales):
 }
 ```
 
+La respuesta es la misma que la del servicio /auth/login
 
+### **POST /auth/facebook**
+
+Este servicio recibe el campo **accessToken** que devuelve la identificación mediante Facebook en el cliente. Lo valida y comprueba el correo en la base de datos. Si el correo existe funciona como un login normal, y si no existe registra al usuario (a partir de los datos obtenidos de Facebook) en la base de datos. Devuelve un token de autenticación válido para el servidor (como el login).
+
+Ejemplo de envío (lat y lng son opcionales):
+
+```json
+{
+    "token": "accessToken de Facebook",
+    "lat": 35.4534,
+    "lng": -0.54673
+}
+```
+
+La respuesta es la misma que la del servicio /auth/login

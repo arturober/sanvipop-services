@@ -64,10 +64,11 @@ export class AuthController {
     try {
       return await this.authService.loginFacebook(tokenDto);
     } catch (e) {
+      console.error(e);
       throw new UnauthorizedException(
         {
           status: HttpStatus.UNAUTHORIZED,
-          error: 'Facebook login failed',
+          error: e.error ? e.error.message : 'Facebook login failed',
         },
       );
     }
