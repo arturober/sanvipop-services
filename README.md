@@ -24,52 +24,106 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+- [Servicios web applicación SanviPop](#servicios-web-applicación-sanvipop)
+  - [Instalación de los servicios](#instalación-de-los-servicios)
+  - [Configurando notificaciones Push](#configurando-notificaciones-push)
+  - [Probando los servicios](#probando-los-servicios)
+- [Servicios web - Colecciones](#servicios-web---colecciones)
+  - [Colección /auth](#colección-auth)
+    - [**POST /auth/login**](#post-authlogin)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# Servicios web applicación SanviPop
 
-## Installation
+Servicios web para los proyectos de la asignatura de entorno cliente.
+
+## Instalación de los servicios
+
+Para lanzar los servicios en local, primero importar la base de datos (directorio SQL). A continuación configuramos el acceso a la base de datos en el archivo **src/micro-orm.config.ts**:
+
+```typescript
+import {ConnectionOptions} from '@mikro-orm/core';
+
+export default {
+    entities: ['dist/entities/*.js'], // compiled JS files
+    entitiesTs: ['src/entities/*.ts'],
+    dbName: 'sanvipop',
+    type: 'mariadb', // one of `mongo` | `mysql` | `mariadb` | `postgresql` | `sqlite`
+    user: 'example',
+    password: 'example',
+    port: 3306,
+    host: 'localhost',
+    debug: true
+} as ConnectionOptions;
+```
+
+Después instalamos las dependencias del proyecto:
 
 ```bash
 $ npm install
 ```
 
-## Running the app
+Edita el archivo **src/google-id.ts** para poner ahí tu id de Google (la que uses en el cliente) o no funcionará el login con dicho proveedor.
+
+## Configurando notificaciones Push
+
+<p style="color: red">Este apartado todavía no es funcional (para el proyecto de Ionic lo será)<p> 
+
+Descarga el archivo de cuenta de servicio (Configuración de proyecto -> cuentas de servicio) dentro de la carpeta **firebase** y renombralo a **serviceAccountKey.json**. Tiene que ser el mismo proyecto que uses en la aplicación cliente donde habrás descargado el archivo **google-services.json**. Los servicios están configurados para mandar una notificación push cuando alguien compre un producto del usuario o le valore en una transacción.
+
+## Probando los servicios
+
+Lanzamos los servicios (modo testing) con el siguiente comando:
 
 ```bash
-# development
 $ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
-## Test
+También los podéis desplegar en un servidor utilizando por ejemplo Apache + [Passenger](https://www.phusionpassenger.com/library/deploy/apache/deploy/nodejs/)
 
-```bash
-# unit tests
-$ npm run test
+# Servicios web - Colecciones
 
-# e2e tests
-$ npm run test:e2e
+Normalmente, todos los servicios (que devuelven datos) devuelven un resultado en formato JSON. Cuando no se pueda realizar una operación, devolverán un código de error HTTP junto a un objeto JSON con la descripción del mismo.
 
-# test coverage
-$ npm run test:cov
+Todas las colecciones, excepto **/auth** (*/auth/validate* sí lo requiere), requieren un token de autenticación para poder utilizar los servicios web, devolviendo un código 401 (Not Authorized) en caso de no incluirlo. Este debe enviarse en la cabecera Authorization con el prefijo Bearer:
+
+```
+Authorization: Bearer auth_token
 ```
 
-## Support
+## Colección /auth
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+El servicio comprueba si un usuario y contraseña son correctos, devolviendo un token de autenticación (JWT) si todo va bien. Opcionalmente se puede enviar la posición del usuario para que la actualice.
 
-## Stay in touch
+Ejemplo de petición:
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```json
+{
+    "email": "prueba@email.es",
+    "password": "1234",
+    "lat": 35.4534,
+    "lng": -0.54673
+}
+```
 
-## License
+Si el login es correcto, la respuesta será algo como esto:
 
-  Nest is [MIT licensed](LICENSE).
+```json
+{
+    "expiresIn": 31536000,
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNTc4MTYyNDA2LCJleHAiOjE2MDk2OTg0MDZ9.HQZ-PO-usLc9WT-0cUpuDPnVRFl_u71njNoQNj_TIx8"
+}
+```
+
+En caso de error en el login (usuario y contraseña no válidos), se devolverá el código de error 401:
+
+```json
+{
+    "status": 401,
+    "error": "Email or password incorrect"
+}
+```
+
+### **POST /auth/login**
+
+
+

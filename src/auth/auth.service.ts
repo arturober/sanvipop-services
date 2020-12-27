@@ -74,8 +74,8 @@ export class AuthService {
                 email,
                 name: payload.name,
                 photo,
-            };
-            await this.userRepo.persistAndFlush(user2);
+            } as User;
+            await this.userRepo.nativeInsert(user2);
             user = await this.usersService.getUserbyEmail(email);
         }
 
@@ -122,7 +122,7 @@ export class AuthService {
                 name: respUser.name,
                 photo,
             } as User;
-            await this.userRepo.persistAndFlush(user);
+            await this.userRepo.nativeInsert(user);
         }
 
         if (tokenDto.firebaseToken) {
