@@ -33,6 +33,20 @@
     - [**POST /auth/login**](#post-authlogin)
     - [**POST /auth/google**](#post-authgoogle)
     - [**POST /auth/facebook**](#post-authfacebook)
+    - [**POST /auth/register**](#post-authregister)
+    - [**GET /auth/validate**](#get-authvalidate)
+  - [Colección /categories](#colección-categories)
+    - [**GET /categories**](#get-categories)
+  - [Colección /products](#colección-products)
+    - [**GET /products**](#get-products)
+    - [**GET /products/mine**](#get-productsmine)
+    - [**GET /products/bookmarks**](#get-productsbookmarks)
+    - [**GET /products/mine/sold**](#get-productsminesold)
+    - [**GET /products/mine/bought**](#get-productsminebought)
+    - [**GET /products/user/:id**](#get-productsuserid)
+    - [**GET /products/user/:id/sold**](#get-productsuseridsold)
+    - [**GET /products/user/:id/bought**](#get-productsuseridbought)
+    - [**GET /products/:id**](#get-productsid)
 
 # Servicios web applicación SanviPop
 
@@ -158,3 +172,193 @@ Ejemplo de envío (lat y lng son opcionales):
 ```
 
 La respuesta es la misma que la del servicio /auth/login
+
+### **POST /auth/register**
+
+Este servicio recibe los datos de un usuario y lo registra en la base de datos. Los datos que recibirá son nombre, email, password, foto de perfil y opcionalmente, las coordenadas de geolocalización. Ejemplo de petición:
+
+```json
+{
+    "name": "Prueba",
+    "email": "prueba@correo.es",
+    "password": "1234",
+    "photo": "Imagen codificada en base64",
+    "lat": 35.4534,
+    "lng": -0.54673
+}
+```
+
+Si la petición es correcta, el servidor devolverá una respuesta **201** (Created) con el correo del usuario creado:
+
+```json
+{
+    "email": "prueba@correo.es"
+}
+```
+
+Mientras que si hay algún error en los datos enviados, devolverá un código **400** (Bad Request) con información de los errores:
+
+```json
+{
+    "statusCode": 400,
+    "message": [
+        "Email test3@test3.com is already present in the database"
+    ],
+    "error": "Bad Request"
+}
+```
+
+### **GET /auth/validate**
+
+Este servicio simplemente comprueba que el token de autenticación que se envía en la cabecera **Authorization** es correcto (y se ha enviado), devolviendo una respuesta vacía **204** si hay token y es válido o un error **401** (Not Authorized) si no lo es.
+
+## Colección /categories
+
+Todos los servicios de esta colección requieren del token de autenticación.
+
+### **GET /categories**
+
+Este servicio te devuelve las categorías para productos de la base de datos en el siguiente formato:
+
+```json
+{
+    "categories": [
+        {
+            "id": 1,
+            "name": "Electronics"
+        },
+        {
+            "id": 2,
+            "name": "Motor and vehicles"
+        },
+        ...
+    ]
+}
+```
+
+## Colección /products
+
+Todos los servicios de esta colección requieren del token de autenticación.
+
+### **GET /products**
+
+Devuelve todos los productos a la venta ordenados por distancia hasta el usuario autenticado. Los productos devueltos no tendrán toda la información completa, hay campos que estarán a null y que se obtendrán llamando al servicio que te devuelve los datos de un solo producto. Ejemplo de respuesta con un producto:
+
+```json
+{
+    "products": [
+        {
+            "id": 438,
+            "datePublished": "2020-12-20T11:54:59.000Z",
+            "title": "Test product new",
+            "description": "Product with\n2 lines",
+            "status": 1,
+            "price": 23.35,
+            "owner": {
+                "id": 15,
+                "registrationDate": "2020-11-01T10:13:04.000Z",
+                "name": "Test User",
+                "email": "test@test.com",
+                "lat": 38,
+                "lng": -0.5,
+                "photo": "http://SERVER/img/users/1606587397679.jpg"
+            },
+            "numVisits": 5,
+            "category": {
+                "id": 1,
+                "name": "Electronics"
+            },
+            "mainPhoto": "http://SERVER/img/products/1608465299244.jpg",
+            "soldTo": null,
+            "rating": null,
+            "photos": null,
+            "bookmarked": false,
+            "distance": 34.36346,
+            "mine": true
+        },
+        ...
+    ]
+}
+```
+
+### **GET /products/mine**
+
+Igual que el servicio **/products** pero devuelve solo los productos que vende el usuario actual.
+
+### **GET /products/bookmarks**
+
+Igual que el servicio **/products** pero devuelve los productos marcados como favoritos por el usuario actual.
+
+### **GET /products/mine/sold**
+
+En este caso devuelve los productos que el usuario actual ya ha vendido a otro usuario (status = 3).
+
+### **GET /products/mine/bought**
+
+Lista de productos que el usuario actual ha comprado a otros usuarios.
+
+### **GET /products/user/:id**
+
+Devuelve los productos que el usuario cuya id recibe en la url está vendiendo actualmente.
+
+### **GET /products/user/:id/sold**
+
+Devuelve los productos que el usuario cuya id recibe en la url ha vendido a otros usuarios.
+
+### **GET /products/user/:id/bought**
+
+Devuelve los productos que el usuario cuya id recibe en la url ha comprado a otros usuarios.
+
+### **GET /products/:id**
+
+Devuelve los datos del producto cuya id se recibe en la url. Este producto tendrá datos adicionales como la lista de fotos, las valoraciones del comprador y vendedor (si ha sido comprado y valorado), o el usuario que lo ha comprado el producto (si lo hay).
+
+Ejemplo de respuesta:
+
+```json
+{
+    "product": {
+        "id": 392,
+        "datePublished": "2020-11-19T21:28:38.000Z",
+        "title": "Have a hand",
+        "description": "A second hand for usefull usses",
+        "status": 3,
+        "price": 25,
+        "owner": {
+            "id": 98,
+            "registrationDate": "2020-11-19T21:27:23.000Z",
+            "name": "Irene-Prueba",
+            "email": "irene-prueba@mail.com",
+            "lat": 38.4018273,
+            "lng": -0.5241973,
+            "photo": "http://SERVER/img/users/1605821243453.jpg"
+        },
+        "numVisits": 5,
+        "category": {
+            "id": 9,
+            "name": "Home appliances"
+        },
+        "mainPhoto": "http://SERVER/img/products/1605821318532.jpg",
+        "soldTo": {
+            "id": 15,
+            "registrationDate": "2020-11-01T10:13:04.000Z",
+            "name": "Test User",
+            "email": "test@test.com",
+            "lat": 38,
+            "lng": -0.5,
+            "photo": "img/users/1606587397679.jpg"
+        },
+        "rating": {
+            "sellerRating": null,
+            "buyerRating": 5,
+            "sellerComment": null,
+            "buyerComment": "Good buyer",
+            "dateTransaction": "2020-12-20T10:49:44.000Z"
+        },
+        "photos": [],
+        "bookmarked": true,
+        "distance": 44.6710090637207,
+        "mine": false
+    }
+}
+```
