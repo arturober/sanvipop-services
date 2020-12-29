@@ -47,6 +47,8 @@
     - [**GET /products/user/:id/sold**](#get-productsuseridsold)
     - [**GET /products/user/:id/bought**](#get-productsuseridbought)
     - [**GET /products/:id**](#get-productsid)
+    - [**POST /products**](#post-products)
+    - [**DELETE /products/:id**](#delete-productsid)
 
 # Servicios web applicación SanviPop
 
@@ -313,7 +315,7 @@ Devuelve los productos que el usuario cuya id recibe en la url ha comprado a otr
 
 Devuelve los datos del producto cuya id se recibe en la url. Este producto tendrá datos adicionales como la lista de fotos, las valoraciones del comprador y vendedor (si ha sido comprado y valorado), o el usuario que lo ha comprado el producto (si lo hay).
 
-Ejemplo de respuesta:
+Ejemplo de respuesta de la llamada a **/products/392** (producto vendido):
 
 ```json
 {
@@ -355,10 +357,106 @@ Ejemplo de respuesta:
             "buyerComment": "Good buyer",
             "dateTransaction": "2020-12-20T10:49:44.000Z"
         },
-        "photos": [],
+        "photos": [
+          {
+              "id": 367,
+              "url": "http://SERVER/img/products/1605821318532.jpg"
+          }
+        ],
         "bookmarked": true,
         "distance": 44.6710090637207,
         "mine": false
     }
+}
+```
+
+Si el producto no existe, el servidor deberá devolver un error **404**.
+
+```json
+{
+    "statusCode": 404,
+    "message": "Product not found",
+    "error": "Not Found"
+}
+```
+
+### **POST /products**
+
+Este servicio inserta un nuevo producto a la base de datos y lo asocia al usuario autenticado. El producto por defecto estará "en venta" (status = 1).
+
+Esta es la información necesaria para crear un producto que debemos enviar al servidor:
+
+```json
+{
+    "title": "Test product new",
+    "description": "Product with\n2 lines",
+    "category": 1,
+    "price": 23.35,
+    "mainPhoto": "Imagen en Base64"
+}
+```
+
+Si todo es correcto, el servidor nos responderá con el producto añadido. Este tendrá más información de la que originalmente enviamos al servidor, como los datos del usuario creado, el estado, número de visitas, o la url de la imagen, entre otras:
+
+```json
+{
+    "product": {
+        "status": 1,
+        "photos": [
+            {
+                "url": "http://arturober.com:5008/img/products/1609248956049.jpg",
+                "id": 437
+            }
+        ],
+        "title": "Test product new",
+        "description": "Product with\n2 lines",
+        "price": 23.35,
+        "owner": {
+            "id": 15,
+            "registrationDate": "2020-11-01T10:13:04.000Z",
+            "name": "Test User",
+            "email": "test@test.com",
+            "lat": 38,
+            "lng": -0.5,
+            "photo": "http://arturober.com:5008/img/users/1606587397679.jpg"
+        },
+        "category": {
+            "id": 1
+        },
+        "id": 446,
+        "mainPhoto": "http://arturober.com:5008/img/products/1609248956049.jpg",
+        "mine": true
+    }
+}
+```
+
+Si algún campo no tuviera un formato correcto o no estuviera presente, el servidor nos responderá con un error **400** (Bad Request) e información sobre lo que ha fallado:
+
+```json
+{
+    "statusCode": 400,
+    "message": [
+        "category should not be empty",
+        "category must be an integer number",
+        "price should not be empty",
+        "price must be a number conforming to the specified constraints",
+        "mainPhoto should not be empty",
+        "mainPhoto must be a string"
+    ],
+    "error": "Bad Request"
+}
+```
+
+### **DELETE /products/:id**
+
+Este servicio borra el producto cuya id se especifica en la url. Devuelve una respuesta vacía **204** si el producto se ha borrado, o un error 404 si intentamos borrar un producto que no existe.
+
+En caso de intentar borrar un producto que no es nuestro, nos responderá con un error **403** (Forbidden):
+
+```json
+{
+    "statusCode": 403,
+    "message": "You can't edit or delete other user's products",
+    "error": "Forbidden"
 }
 ```
