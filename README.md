@@ -49,6 +49,15 @@
     - [**GET /products/:id**](#get-productsid)
     - [**POST /products**](#post-products)
     - [**DELETE /products/:id**](#delete-productsid)
+    - [**PUT /products/:id**](#put-productsid)
+    - [**PUT /products/:id/buy**](#put-productsidbuy)
+    - [**POST /products/:id/bookmarks**](#post-productsidbookmarks)
+    - [**DELETE /products/:id/bookmarks**](#delete-productsidbookmarks)
+    - [**POST /products/:id/photos**](#post-productsidphotos)
+    - [**DELETE /products/:id/photos/:idPhoto**](#delete-productsidphotosidphoto)
+  - [Colección /users](#colección-users)
+    - [**GET /users/me**](#get-usersme)
+    - [**GET /users/:id**](#get-usersid)
 
 # Servicios web applicación SanviPop
 
@@ -404,7 +413,7 @@ Si todo es correcto, el servidor nos responderá con el producto añadido. Este 
         "status": 1,
         "photos": [
             {
-                "url": "http://arturober.com:5008/img/products/1609248956049.jpg",
+                "url": "http://SERVER/img/products/1609248956049.jpg",
                 "id": 437
             }
         ],
@@ -418,13 +427,13 @@ Si todo es correcto, el servidor nos responderá con el producto añadido. Este 
             "email": "test@test.com",
             "lat": 38,
             "lng": -0.5,
-            "photo": "http://arturober.com:5008/img/users/1606587397679.jpg"
+            "photo": "http://SERVER/img/users/1606587397679.jpg"
         },
         "category": {
             "id": 1
         },
         "id": 446,
-        "mainPhoto": "http://arturober.com:5008/img/products/1609248956049.jpg",
+        "mainPhoto": "http://SERVER/img/products/1609248956049.jpg",
         "mine": true
     }
 }
@@ -460,3 +469,126 @@ En caso de intentar borrar un producto que no es nuestro, nos responderá con un
     "error": "Forbidden"
 }
 ```
+
+### **PUT /products/:id**
+
+Similar al servicio de añadir producto pero para editar un producto existente. En la url se debe especificar la id del producto que vamos a modificar. Todos los campos a editar son opcionales, es decir, se solo se cambiará la información enviada en la base de datos.
+
+A continuación vamos a ver 3 posibilidades para editar la información de un producto.
+
+1. Modificar información básica del producto (como añadir pero sin la foto). La categoría al igual que al añadir, debe enviarse como número (id de la nueva categoría).
+
+```json
+{
+    "title": "Test product Updated",
+    "description": "Product with\n2 lines and more",
+    "category": 2,
+    "price": 43
+}
+```
+
+2. Cambiar el estado de un producto. La propiedad **status** indica: 1 - en venta, 2 - reservado, 3 - vendido. A la hora de cambiar el estado de un producto a "vendido", se deberá enviar también la id del usuario al que se le ha vendido (propiedad **soldTo**). Ejemplo:
+
+```json
+{
+    "status": 3,
+    "soldTo": 1
+}
+```
+
+3. Finalmente, también se puede usar este servicio para establecer una nueva foto principal para el producto. Enviando como valor de la propiedad **mainPhoto**, la id de una de las imagénes que tenga el producto asociadas.
+
+```json
+{
+    "mainPhoto": 204
+}
+```
+
+La respuesta de este servicio será el producto actualizado, igual que el servicio de insertar producto. Se pueden producir errores del tipo **400** si algún campo es erróneo, **404** si el producto a editar no existe, o **403** si intentamos editar un producto que no es nuestro.
+
+### **PUT /products/:id/buy**
+
+Este servicio se llama cuando el usuario autenticado quiere comprar el producto cuya id se especifica en la url. El cuerpo de la petición en este caso estará **vacío**. Automáticamente se pondrá el estado del producto a 3 (vendido) y se asociará el usuario autenticado como comprador.
+
+El servidor responderá también sin datos (**204**) si todo ha ido bien, o con un error, como por ejemplo 404 si el producto no existe.
+
+### **POST /products/:id/bookmarks**
+
+Este servicio añade el producto cuya id se pasa por parámetro, a la lista de favoritos del usuario autenticado. No se envía ningún dato con la petición y la respuesta igualmente será vacía (**204**) si todo ha ido correctamente.
+
+### **DELETE /products/:id/bookmarks**
+
+Borra el producto especificado de la lista de favoritos del usuario autenticado. La respuesta estará vacía (**204**) si no se produce ningún error.
+
+### **POST /products/:id/photos**
+
+Añade una imagen al producto cuya id se envía en la url (los productos pueden tener varias imágenes asociadas). El cuerpo de la petición será la imagen en formato base64. Adicionalmente se puede enviar el campo setMain: true, para que además de añadir la imagen, la asocie como imagen principal del producto.
+
+```json
+{
+    "photo": "Imagen en base64",
+    "setMain": true
+}
+```
+
+La respuesta del servidor será la foto añadida, con la id y url generadas. O un error como 404 si el producto no existe.
+
+```json
+{
+    "photo": {
+        "url": "http://SERVER/img/products/1609348722463.jpg",
+        "id": 439
+    }
+}
+```
+
+### **DELETE /products/:id/photos/:idPhoto**
+
+Este servicio borra la foto del producto especificado en la url (:id). Además, se especifica la id de la foto que se borrará (:idPhoto).
+
+El servidor devolverá una respuesta vacía si todo va bien, o un código de error como **404** si el producto no existe o la foto a borrar no pertenece al producto especificado. Si intentamos borrar una foto de un producto que no sea nuestro, nos responderá con un error **403**.
+
+## Colección /users
+
+Todos los servicios de esta colección requieren del token de autenticación.
+
+### **GET /users/me**
+
+Devuelve la información del perfil del usuario autenticado. El booleano me indica si la información es del usuario autenticado o de otro.
+
+```json
+{
+    "user": {
+        "id": 15,
+        "registrationDate": "2020-11-01T10:13:04.000Z",
+        "name": "Test User",
+        "email": "test@test.com",
+        "lat": 38,
+        "lng": -0.5,
+        "photo": "http://SERVER/img/users/1606587397679.jpg",
+        "me": true
+    }
+}
+```
+
+### **GET /users/:id**
+
+Igual que **/users/me** pero devuelve la información del usuario cuya id recibe en la url. Devuelve un error **404** si el usuario no existe.
+
+Ejemplo de llamada a **/users/1**:
+
+```json
+{
+    "user": {
+        "id": 1,
+        "registrationDate": "2016-12-31T11:18:14.000Z",
+        "name": "Prueba",
+        "email": "prueba@correo.es",
+        "lat": 38.401827000000004,
+        "lng": -0.524191,
+        "photo": "http://arturober.com:5008/img/users/1605562674191.jpg",
+        "me": false
+    }
+}
+```
+
