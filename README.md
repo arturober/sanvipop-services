@@ -58,6 +58,7 @@
   - [Colección /users](#colección-users)
     - [**GET /users/me**](#get-usersme)
     - [**GET /users/:id**](#get-usersid)
+    - [**GET /users/name/:name**](#get-usersnamename)
 
 # Servicios web applicación SanviPop
 
@@ -591,4 +592,38 @@ Ejemplo de llamada a **/users/1**:
     }
 }
 ```
+
+### **GET /users/name/:name**
+
+Este servicio busca usuarios a partir de la cadena que se le pasa como variable en la url. Te devuelve un array con los datos de los usuarios cuyo nombre contenga la cadena de búsqueda.
+
+Ejemplo de respuesta al llamar a **/users/name/pru**:
+
+```json
+{
+    "user": [
+        {
+            "id": 1,
+            "registrationDate": "2016-12-31T11:18:14.000Z",
+            "name": "Prueba",
+            "email": "prueba@correo.es",
+            "lat": 37,
+            "lng": -0.5,
+            "photo": "img/users/1605562674191.jpg",
+            "me": false
+        },
+        {
+            "id": 22,
+            "registrationDate": "2020-11-04T16:10:58.000Z",
+            "name": "PruebaX01",
+            "email": "prueba@bien.com",
+            "lat": 38.3681882,
+            "lng": -0.49744510000000003,
+            "photo": "img/users/1604506258691.jpg",
+            "me": false
+        }
+    ]
+}
+```
+
 
