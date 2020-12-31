@@ -59,6 +59,9 @@
     - [**GET /users/me**](#get-usersme)
     - [**GET /users/:id**](#get-usersid)
     - [**GET /users/name/:name**](#get-usersnamename)
+    - [**PUT /users/me**](#put-usersme)
+    - [**PUT /users/me/photo**](#put-usersmephoto)
+    - [**PUT /users/me/password**](#put-usersmepassword)
 
 # Servicios web applicación SanviPop
 
@@ -587,7 +590,7 @@ Ejemplo de llamada a **/users/1**:
         "email": "prueba@correo.es",
         "lat": 38.401827000000004,
         "lng": -0.524191,
-        "photo": "http://arturober.com:5008/img/users/1605562674191.jpg",
+        "photo": "http://SERVER/img/users/1605562674191.jpg",
         "me": false
     }
 }
@@ -601,7 +604,7 @@ Ejemplo de respuesta al llamar a **/users/name/pru**:
 
 ```json
 {
-    "user": [
+    "users": [
         {
             "id": 1,
             "registrationDate": "2016-12-31T11:18:14.000Z",
@@ -609,7 +612,7 @@ Ejemplo de respuesta al llamar a **/users/name/pru**:
             "email": "prueba@correo.es",
             "lat": 37,
             "lng": -0.5,
-            "photo": "img/users/1605562674191.jpg",
+            "photo": "http://SERVER/img/users/1605562674191.jpg",
             "me": false
         },
         {
@@ -619,11 +622,54 @@ Ejemplo de respuesta al llamar a **/users/name/pru**:
             "email": "prueba@bien.com",
             "lat": 38.3681882,
             "lng": -0.49744510000000003,
-            "photo": "img/users/1604506258691.jpg",
+            "photo": "http://SERVER/img/users/1604506258691.jpg",
             "me": false
         }
     ]
 }
 ```
 
+### **PUT /users/me**
 
+Modifica la información del nombre y correo del usuario autenticado.
+
+Ejemplo de petición:
+
+```json
+{
+  "name": "John",
+  "email": "email@email.com"
+}
+```
+
+El servidor devolverá una respuesta vacía **204**, si todo va bien o un error **400** si algún campo es erróneo, no está presente, o intentamos asignar un correo que ya tiene otro usuario.
+
+### **PUT /users/me/photo**
+
+Modifica la imagen del usuario autenticado. Ejemplo de petición:
+
+```json
+{
+    "photo": "Imagen en base 64"
+}
+```
+
+Si no hay ningún error, responde con la url de la nueva imagen almacenada en el servidor:
+
+```json
+{
+    "photo": "http://SERVER/img/users/1609451684334.jpg"
+}
+```
+
+### **PUT /users/me/password**
+
+Actualiza la contraseña del usuario autenticado. Ejemplo de petición
+
+```json
+{
+  "password": "1234"
+}
+```
+
+Si todo va bien, el servidor devuelve una respuesta vacía **204**.
