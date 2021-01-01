@@ -62,6 +62,10 @@
     - [**PUT /users/me**](#put-usersme)
     - [**PUT /users/me/photo**](#put-usersmephoto)
     - [**PUT /users/me/password**](#put-usersmepassword)
+  - [Colección /ratings](#colección-ratings)
+    - [**POST /ratings**](#post-ratings)
+    - [**GET /ratings/user/me**](#get-ratingsuserme)
+    - [**GET /ratings/user/:id**](#get-ratingsuserid)
 
 # Servicios web applicación SanviPop
 
@@ -673,3 +677,85 @@ Actualiza la contraseña del usuario autenticado. Ejemplo de petición
 ```
 
 Si todo va bien, el servidor devuelve una respuesta vacía **204**.
+
+## Colección /ratings
+
+Todos los servicios de esta colección requieren del token de autenticación.
+
+### **POST /ratings**
+
+Llamamos a este servicio para puntuar una transacción de algún producto que hayamos comprado o vendido. Debemos pasarle la id del producto, el comentario y una valoración del 1 al 5. Solo se puede valorar la transacción de un producto **una sola vez**.
+
+Ejemplo de llamada:
+
+```json
+{
+    "rating": 5,
+    "comment": "Good buyer",
+    "product": 392
+}
+```
+
+Si todo va bien, el servidor nos devolverá una respuesta vacía **204**.
+
+Si algún campo no está o no tiene un formato correcto, nos devolvería un error **400**, mientras que en caso de realizar una operación no permitida como comentar 2 veces el mismo producto, nos devolvería un error **403**.
+
+### **GET /ratings/user/me**
+
+Devuelve un array con las puntuaciones recibidas por parte de otros usuarios en transacciones realizadas. Cada puntuación contendrá la información del producto, del usuario que nos ha valorado, la puntuación y el comentario.
+
+Ejemplo de respuesta:
+
+```json
+{
+    "ratings": [
+        {
+            "product": {
+                "id": 436,
+                "rating": 436,
+                "datePublished": "2020-12-17T16:22:18.000Z",
+                "title": "Complete suitcase",
+                "description": "It covers ALL your needs\nGuaranteed!",
+                "status": 3,
+                "price": 145,
+                "owner": {
+                    "id": 15,
+                    "registrationDate": "2020-11-01T10:13:04.000Z",
+                    "name": "Test 3",
+                    "email": "test333@email.com",
+                    "lat": 38,
+                    "lng": -0.5,
+                    "photo": "http://SERVER/img/users/1609451684334.jpg"
+                },
+                "numVisits": 9,
+                "category": 10,
+                "mainPhoto": 420,
+                "soldTo": {
+                    "id": 131,
+                    "registrationDate": "2020-12-23T15:00:55.000Z",
+                    "name": "Ivanset",
+                    "email": "ivanset@gmail.com",
+                    "lat": 38.3746048,
+                    "lng": -0.49151999999999996,
+                    "photo": "http://SERVER/img/users/1608822623745.jpg"
+                }
+            },
+            "user": {
+                "id": 131,
+                "registrationDate": "2020-12-23T15:00:55.000Z",
+                "name": "Ivanset",
+                "email": "ivanset@gmail.com",
+                "lat": 38.3746048,
+                "lng": -0.49151999999999996,
+                "photo": "http://SERVER/img/users/1608822623745.jpg"
+            },
+            "comment": "Good enough!",
+            "rating": 2
+        }
+    ]
+}
+```
+
+### **GET /ratings/user/:id**
+
+Este servicio es exactamente igual que el anterior, pero nos devuelve las puntuaciones que el usuario cuya id pasamos en la url, ha recibido.
