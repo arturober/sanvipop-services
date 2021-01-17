@@ -38,7 +38,7 @@ export class Product {
   category!: Category;
 
   @OneToOne({ entity: () => ProductPhoto, fieldName: 'mainPhoto', cascade: [Cascade.MERGE], nullable: true, index: 'mainPhoto', unique: 'mainPhoto_2' })
-  @Transform(p => p && p.url)
+  @Transform(p => p.value && p.value.url)
   mainPhoto?: ProductPhoto;
 
   @ManyToOne({ entity: () => User, fieldName: 'soldTo', cascade: [Cascade.MERGE], nullable: true, index: 'soldTo' })
@@ -48,7 +48,7 @@ export class Product {
   rating?: Transaction;
 
   @OneToMany({ entity: () => ProductPhoto, mappedBy: photo => photo.product, cascade: [Cascade.PERSIST]})
-  @Transform(photos => photos.isInitialized() ? photos.getItems() : null)
+  @Transform(photos => photos.value.isInitialized() ? photos.value.getItems() : null)
   photos = new Collection<ProductPhoto>(this);
 
   @OneToMany({ entity: () => ProductBookmark, mappedBy: bm => bm.product})

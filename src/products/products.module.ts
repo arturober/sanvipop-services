@@ -8,10 +8,11 @@ import { Category } from 'src/entities/Category';
 import { User } from 'src/entities/User';
 import { ProductPhoto } from 'src/entities/ProductPhoto';
 import { ProductBookmark } from 'src/entities/ProductBookmark';
+import { Transaction } from 'src/entities/Transaction';
 
 @Module({
   imports: [
-    MikroOrmModule.forFeature([Product, ProductPhoto, Category, User, ProductBookmark]),
+    MikroOrmModule.forFeature([Product, ProductPhoto, Category, User, ProductBookmark, Transaction]),
     CommonsModule
   ],
   providers: [ProductsService],

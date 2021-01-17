@@ -42,7 +42,10 @@ export class TransactionsService {
             throw new ForbiddenException('You can only rate sold products');
         }
 
-        const transaction = new Transaction(product);
+        let transaction = await this.transactionRepository.findOne({product: ratingDto.product})
+        if (!transaction) {
+           transaction = new Transaction(product);
+        }
         if(transaction.seller.id === authUser.id) {
             transaction.sellerRating = ratingDto.rating;
             transaction.sellerComment = ratingDto.comment;

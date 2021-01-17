@@ -42,12 +42,10 @@ export class ProductsRepository extends EntityRepository<Product> {
     public findById(idProduct: number, idLogged: number, lat = 0, lng = 0,): Promise<Product> {
         return this.em.createQueryBuilder(Product, 'p').select([
             'p.*',
-            't.idProduct as rating', 
             `haversine(u.lat, u.lng, ${lat}, ${lng}) AS distance`, 
             `exists(SELECT 1 FROM product_bookmark pb WHERE pb.iduser = ${idLogged} AND pb.idProduct = p.id) AS bookmarked`
         ])
         .join('p.owner', 'u')
-        .join('p.rating', 't', undefined, 'leftJoin')
         .where({ id: idProduct })
         .getSingleResult();
     }

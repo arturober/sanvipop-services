@@ -9,7 +9,7 @@ export class LoginUserDto {
 
     @IsString()
     @IsNotEmpty()
-    @Transform(p => crypto.createHash('sha256').update(p).digest('base64'))
+    @Transform(p => crypto.createHash('sha256').update(p.value).digest('base64'))
     readonly password: string;
 
     @IsString()
