@@ -12,6 +12,7 @@ import { EditProductDto } from './dto/edit-product.dto';
 import { ProductBookmark } from 'src/entities/ProductBookmark';
 import { AddPhotoDto } from './dto/add-photo.dto';
 import { Transaction } from 'src/entities/Transaction';
+import { FirebaseService } from 'src/commons/firebase/firebase.service';
 
 @Injectable()
 export class ProductsService {
@@ -23,6 +24,7 @@ export class ProductsService {
         @InjectRepository(User) private readonly userRepository: EntityRepository<User>,
         @InjectRepository(Transaction) private readonly transRepository: EntityRepository<Transaction>,
         private readonly imageService: ImageService,
+        private readonly firebaseService: FirebaseService,
     ) {
     }
 
@@ -130,6 +132,14 @@ export class ProductsService {
         product.status = 3;
         product.soldTo = authUser;
         await this.productRepository.flush();
+        if(product.owner.firebaseToken) {
+            await this.firebaseService.sendMessage(
+                product.owner.firebaseToken, 
+                'You have sold a product!', 
+                `${authUser.name} has bought ${product.title}`, 
+                {prodId: '' + product.id}
+            );
+        }
     }
 
     async delete(authUser: User, id: number): Promise<void> {
