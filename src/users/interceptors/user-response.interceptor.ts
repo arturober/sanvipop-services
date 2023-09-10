@@ -1,18 +1,32 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { User } from 'src/entities/User';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserResponseInterceptor implements NestInterceptor {
+  constructor(private configService: ConfigService) {}
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
-    const baseUrl = req.protocol + '://' + req.headers.host + '/';
     return next.handle().pipe(
       map((u: User) => {
-        u.photo = u.photo && baseUrl + u.photo;
-        return {user: u};
-      })
+        return { user: this.transformImageUrl(req, u) };
+      }),
     );
+  }
+
+  private transformImageUrl(req, user: User) {
+    const baseUrl = `${req.protocol}://${
+      req.headers.host
+    }/${this.configService.get<string>('basePath')}`;
+    user.photo = user.photo && baseUrl + user.photo;
+    return user;
   }
 }

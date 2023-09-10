@@ -55,6 +55,6 @@ export class TransactionsService {
         } else {
             throw new ForbiddenException('Your user is not involved in the transaction');
         }
-        await this.transactionRepository.persistAndFlush(transaction);
+        await this.transactionRepository.getEntityManager().persistAndFlush(transaction);
     }
 }

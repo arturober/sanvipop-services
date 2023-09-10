@@ -54,7 +54,7 @@ export class AuthService {
             user.lat = userDto.lat;
             user.lng = userDto.lng;
         }
-        await this.userRepo.flush();
+        await this.userRepo.getEntityManager().flush();
         return this.createToken(user);
     }
 
@@ -87,7 +87,7 @@ export class AuthService {
             user.lat = tokenDto.lat;
             user.lng = tokenDto.lng;
         }
-        await this.userRepo.flush();
+        await this.userRepo.getEntityManager().flush();
 
         return this.createToken(user as User);
     }
@@ -128,14 +128,14 @@ export class AuthService {
 
         if (tokenDto.firebaseToken) {
             user.firebaseToken = tokenDto.firebaseToken;
-            await this.userRepo.flush();
+            await this.userRepo.getEntityManager().flush();
         }
 
         if(tokenDto.lat && tokenDto.lng) {
             user.lat = tokenDto.lat;
             user.lng = tokenDto.lng;
         }
-        await this.userRepo.flush();
+        await this.userRepo.getEntityManager().flush();
 
         return this.createToken(user as User);
     }
