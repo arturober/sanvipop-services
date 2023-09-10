@@ -11,6 +11,8 @@ import { ProductsRepository } from './products.repository';
 import { EditProductDto } from './dto/edit-product.dto';
 import { ProductBookmark } from 'src/entities/ProductBookmark';
 import { AddPhotoDto } from './dto/add-photo.dto';
+import { Transaction } from 'src/entities/Transaction';
+import { FirebaseService } from 'src/commons/firebase/firebase.service';
 
 @Injectable()
 export class ProductsService {
@@ -20,7 +22,9 @@ export class ProductsService {
         @InjectRepository(ProductBookmark) private readonly prodBookmarkRepository: EntityRepository<ProductBookmark>,
         @InjectRepository(Category) private readonly catRepository: EntityRepository<Category>,
         @InjectRepository(User) private readonly userRepository: EntityRepository<User>,
+        @InjectRepository(Transaction) private readonly transRepository: EntityRepository<Transaction>,
         private readonly imageService: ImageService,
+        private readonly firebaseService: FirebaseService,
     ) {
     }
 
@@ -60,12 +64,12 @@ export class ProductsService {
 
     async findSold(authUser: User, idUser: number): Promise<Product[]>  {
         const products = await this.productRepository.findByDistance(authUser.lat, authUser.lng, authUser.id, {owner: {id: idUser}, status: 3}); 
-        return this.productRepository.populate(products, ['owner', 'mainPhoto', 'category', 'rating']);
+        return this.productRepository.populate(products, ['owner', 'mainPhoto', 'category']);
     }
 
     async findBought(authUser: User, idUser: number): Promise<Product[]> {
         const products = await this.productRepository.findByDistance(authUser.lat, authUser.lng, authUser.id, {soldTo: {id: idUser}, status: 3}); 
-        return this.productRepository.populate(products, ['owner', 'mainPhoto', 'category', 'rating']);
+        return this.productRepository.populate(products, ['owner', 'mainPhoto', 'category']);
     }
 
     async findById(authUser: User, id: number): Promise<Product> {
@@ -75,7 +79,8 @@ export class ProductsService {
         }
         product.numVisits++;
         this.productRepository.flush();
-        return this.productRepository.populate(product, ['owner', 'mainPhoto', 'category', 'photos', 'rating']);
+        product.rating = await this.transRepository.findOne({product});
+        return this.productRepository.populate(product, ['owner', 'soldTo', 'mainPhoto', 'category', 'photos']);
     }
     
     async insert(authUser: User, prodDto: InsertProductDto): Promise<Product> {
@@ -127,6 +132,14 @@ export class ProductsService {
         product.status = 3;
         product.soldTo = authUser;
         await this.productRepository.flush();
+        if(product.owner.firebaseToken) {
+            await this.firebaseService.sendMessage(
+                product.owner.firebaseToken, 
+                'You have sold a product!', 
+                `${authUser.name} has bought ${product.title}`, 
+                {prodId: '' + product.id}
+            );
+        }
     }
 
     async delete(authUser: User, id: number): Promise<void> {

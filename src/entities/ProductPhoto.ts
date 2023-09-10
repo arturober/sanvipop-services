@@ -9,7 +9,7 @@ export class ProductPhoto {
   id!: number;
 
   @Exclude()
-  @ManyToOne({ entity: () => Product, fieldName: 'idProduct', cascade: [Cascade.MERGE], index: 'idUser' })
+  @ManyToOne({ entity: () => Product, fieldName: 'idProduct', cascade: [Cascade.MERGE], index: 'idProduct' })
   product!: Product;
 
   @Property({ length: 250 })
