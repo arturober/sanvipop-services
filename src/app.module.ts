@@ -10,9 +10,12 @@ import mikroOrmConfig from './mikro-orm.config';
 import { AuthModule } from './auth/auth.module';
 import { ID_GOOGLE } from './google-id';
 import { TransactionsModule } from './transactions/transactions.module';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './app.config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ load: [configuration], isGlobal: true }),
     MikroOrmModule.forRoot(mikroOrmConfig),
     ProductsModule,
     CommonsModule,
