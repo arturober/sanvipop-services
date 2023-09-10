@@ -14,7 +14,7 @@ export class ProductListResponseInterceptor implements NestInterceptor {
           products: products.map(p => {
             (p.mainPhoto as any) = p.mainPhoto && baseUrl + p.mainPhoto;
             p.owner.photo = baseUrl + p.owner.photo;
-            (p as any).mine = p.owner.id === req.user.id; // TODO: Cambiar al autenticar
+            (p as any).mine = p.owner.id === req.user.id; 
             return p;
           })
         }

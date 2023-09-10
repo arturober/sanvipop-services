@@ -5,8 +5,9 @@ import { ProductPhoto } from './ProductPhoto';
 import { User } from './User';
 import { ProductBookmark } from './ProductBookmark';
 import { Transaction } from './Transaction';
+import { ProductsRepository } from 'src/products/products.repository';
 
-@Entity()
+@Entity({ customRepository: () => ProductsRepository })
 export class Product {
 
   @PrimaryKey()
