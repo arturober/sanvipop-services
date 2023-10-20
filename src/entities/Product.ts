@@ -23,8 +23,8 @@ export class Product {
   @Property({ length: 2000 })
   description!: string;
 
-  @Property()
-  status = 1;
+  @Property({columnType: 'tinyint'})
+  status: number = 1;
 
   @Property({ columnType: 'double' })
   price!: number;
@@ -33,7 +33,7 @@ export class Product {
   owner!: User;
 
   @Property({ fieldName: 'numVisits', default: 0 })
-  numVisits?: number;
+  numVisits?: number = 0;
 
   @ManyToOne({ entity: () => Category, fieldName: 'idCategory', cascade: [Cascade.MERGE], index: 'idCategory' })
   category!: Category;
