@@ -9,11 +9,12 @@ import { PhotoResponse } from './interfaces/photo-response';
 import { UserResponseInterceptor } from './interceptors/user-response.interceptor';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+    constructor(private readonly usersService: UsersService, private configService: ConfigService) {}
 
     @Get('me')
     @UseInterceptors(UserResponseInterceptor, ClassSerializerInterceptor)
@@ -85,7 +86,7 @@ export class UsersController {
     ): Promise<PhotoResponse> {
         try {
             const photo = await this.usersService.updatePhoto(authUser.id, photoDto);
-            return { photo: req.protocol + '://' + req.headers.host + '/' + photo };
+            return { photo: req.protocol + '://' + req.headers.host + '/' + this.configService.get<string>('basePath') + photo };
         } catch (e) {
             throw new NotFoundException();
         }
