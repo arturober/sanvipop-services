@@ -32,8 +32,8 @@ export class Product {
   @ManyToOne({ entity: () => User, fieldName: 'idUser', cascade: [Cascade.MERGE], index: 'idUser' })
   owner!: User;
 
-  @Property({ fieldName: 'numVisits' })
-  numVisits!: number;
+  @Property({ fieldName: 'numVisits', default: 0 })
+  numVisits?: number;
 
   @ManyToOne({ entity: () => Category, fieldName: 'idCategory', cascade: [Cascade.MERGE], index: 'idCategory' })
   category!: Category;

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: mariadb
--- Tiempo de generación: 10-09-2023 a las 20:25:19
+-- Tiempo de generación: 20-10-2023 a las 14:38:32
 -- Versión del servidor: 10.11.4-MariaDB
 -- Versión de PHP: 8.2.9
 
@@ -149,7 +149,7 @@ CREATE TABLE `user` (
   `password` varchar(100) DEFAULT NULL,
   `lat` double NOT NULL,
   `lng` double NOT NULL,
-  `role` tinyint(4) NOT NULL COMMENT '1 ADMIN, 2 USER',
+  `role` tinyint(4) NOT NULL DEFAULT 2 COMMENT '1 ADMIN, 2 USER',
   `photo` varchar(200) NOT NULL,
   `idGoogle` varchar(100) DEFAULT NULL,
   `idFacebook` varchar(100) DEFAULT NULL,
