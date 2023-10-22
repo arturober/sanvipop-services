@@ -29,7 +29,9 @@ export class ProductResponseInterceptor implements NestInterceptor {
       req.headers.host
     }/${this.configService.get<string>('basePath')}`;
     (p.mainPhoto as any) = p.mainPhoto && baseUrl + p.mainPhoto;
-    p.owner.photo = baseUrl + p.owner.photo;
+    if(p.owner) {
+      p.owner.photo = baseUrl + p.owner.photo;
+    }
     (p as any).mine = p.owner.id === req.user.id;
     if (p.photos) {
       (p.photos as any) = (p.photos as any as ProductPhoto[]).map((photo) => {
