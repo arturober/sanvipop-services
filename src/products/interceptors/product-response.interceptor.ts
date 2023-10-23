@@ -18,7 +18,7 @@ export class ProductResponseInterceptor implements NestInterceptor {
     const req = context.switchToHttp().getRequest();
     return next.handle().pipe(
       map((p: Product) => {
-        return { product: this.transformImageUrl(req, p[0]) };
+        return { product: this.transformImageUrl(req, p instanceof Array ? p[0]:p) };
       }),
     );
   }
