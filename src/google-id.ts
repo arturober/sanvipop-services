@@ -1,1 +1,1 @@
-export const ID_GOOGLE = '';
+export const ID_GOOGLE = 'https://github.com/arturober/sanvipop-services.git';
