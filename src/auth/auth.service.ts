@@ -74,6 +74,8 @@ export class AuthService {
                 email,
                 name: payload.name,
                 photo,
+                lat: 0,
+                lng: 0
             } as User;
             await this.userRepo.nativeInsert(user2);
             user = await this.usersService.getUserbyEmail(email);
@@ -122,6 +124,8 @@ export class AuthService {
                 email: respUser.email,
                 name: respUser.name,
                 photo,
+                lat: 0,
+                lng: 0 
             } as User;
             await this.userRepo.nativeInsert(user);
         }
