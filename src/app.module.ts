@@ -21,7 +21,7 @@ import configuration from './app.config';
     CommonsModule,
     CategoriesModule,
     UsersModule,
-    AuthModule.forRoot({googleId: ID_GOOGLE}),
+    AuthModule.forRoot({googleId: configuration().google_id,}),
     TransactionsModule
   ],
   controllers: [AppController],
