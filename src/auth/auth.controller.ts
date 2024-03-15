@@ -50,7 +50,6 @@ export class AuthController {
     try {
       return await this.authService.loginGoogle(tokenDto);
     } catch (e) {
-      console.log(e);
       throw new UnauthorizedException(
         {
           status: HttpStatus.UNAUTHORIZED,
