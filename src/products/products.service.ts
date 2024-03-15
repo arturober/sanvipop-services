@@ -262,7 +262,6 @@ export class ProductsService {
           product: idProd ,
         });
       } catch (e) {
-        console.log(e);
         throw new NotFoundException('Product not found');
       }
     }
