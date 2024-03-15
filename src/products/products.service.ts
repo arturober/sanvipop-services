@@ -258,8 +258,8 @@ export class ProductsService {
     if (!bookmark) {
       try {
         await this.prodBookmarkRepository.nativeInsert({
-          user: { id: authUser.id },
-          product: { id: idProd },
+          user: authUser.id,
+          product: idProd ,
         });
       } catch (e) {
         console.log(e);
