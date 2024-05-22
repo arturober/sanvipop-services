@@ -5,6 +5,7 @@ import * as admin from 'firebase-admin';
 import { useContainer } from 'class-validator';
 import appConfig from './app.config';
 
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {cors: true});
   app.use(
@@ -18,11 +19,10 @@ async function bootstrap() {
   );
 
   try {
-    // tslint:disable-next-line:no-var-requires
-    const serviceAccount = await require('../firebase/serviceAccountKey.json');
+    //eslint-disable-next-line @typescript-eslint/no-var-requires
+    const serviceAccount = require('../firebase/firebase_key.json');
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      databaseURL: 'https://dwec2019.firebaseio.com',
     });
   } catch(e) {}
 
