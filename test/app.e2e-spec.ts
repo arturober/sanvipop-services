@@ -14,7 +14,6 @@ describe('AppController (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
     app = moduleFixture.createNestApplication({ bodyParser: false });
     app.use(express.json({ limit: '8mb' }));
     app.use(express.urlencoded({ limit: '8mb', extended: true }));
