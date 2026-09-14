@@ -1,5 +1,5 @@
-import { QueryOrder, type FilterQuery, type QueryOrderMap } from '@mikro-orm/core';
-import { EntityRepository } from '@mikro-orm/sqlite';
+import { QueryOrder, raw, type FilterQuery, type QueryOrderMap } from '@mikro-orm/core';
+import { EntityRepository } from '@mikro-orm/sql';
 import { Product } from './entities/product.entity.js';
 
 export class ProductsRepository extends EntityRepository<Product> {
@@ -18,8 +18,8 @@ export class ProductsRepository extends EntityRepository<Product> {
       .select([
         'p.*',
         't.idProduct as rating',
-        `haversine(u.lat, u.lng, ${lat}, ${lng}) AS distance`,
-        `exists(SELECT 1 FROM product_bookmark pb WHERE pb.idUser = ${idLogged} AND pb.idProduct = p.id) AS bookmarked`,
+        raw(`haversine(u.lat, u.lng, ${lat}, ${lng}) AS distance`),
+        raw(`exists(SELECT 1 FROM product_bookmark pb WHERE pb.idUser = ${idLogged} AND pb.idProduct = p.id) AS bookmarked`),
       ] as any)
       .join('p.owner', 'u')
       .leftJoin('p.rating', 't');
@@ -59,8 +59,8 @@ export class ProductsRepository extends EntityRepository<Product> {
       .createQueryBuilder(Product, 'p')
       .select([
         'p.*',
-        `haversine(u.lat, u.lng, ${lat}, ${lng}) AS distance`,
-        `exists(SELECT 1 FROM product_bookmark pb WHERE pb.idUser = ${idLogged} AND pb.idProduct = p.id) AS bookmarked`,
+        raw(`haversine(u.lat, u.lng, ${lat}, ${lng}) AS distance`),
+        raw(`exists(SELECT 1 FROM product_bookmark pb WHERE pb.idUser = ${idLogged} AND pb.idProduct = p.id) AS bookmarked`),
       ] as any)
       .join('p.owner', 'u')
       .where({ id: idProduct })

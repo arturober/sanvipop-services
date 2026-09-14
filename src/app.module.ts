@@ -1,7 +1,7 @@
 import { Module, type OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { MikroORM } from '@mikro-orm/sqlite';
+import { MikroORM } from '@mikro-orm/core';
 import databaseConfig from './config/database.config.js';
 import appConfig from './config/app.config.js';
 import { AppController } from './app.controller.js';

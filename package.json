@@ -19,13 +19,17 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
+    "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "db:drop": "mikro-orm schema:drop --run",
+    "db:create": "mikro-orm schema:create --run",
+    "db:update": "mikro-orm schema:update --run",
+    "db:seed": "nest build && node dist/database/seed.js"
   },
   "dependencies": {
     "@mikro-orm/core": "^7.2.0",
     "@mikro-orm/decorators": "^7.2.0",
     "@mikro-orm/nestjs": "^7.1.0",
-    "@mikro-orm/sqlite": "^7.2.0",
+    "@mikro-orm/sql": "^7.2.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.0",
     "@nestjs/core": "^12.0.1",

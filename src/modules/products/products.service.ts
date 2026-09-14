@@ -6,7 +6,12 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { EntityRepository } from '@mikro-orm/core';
+import {
+  EntityRepository,
+  type FilterQuery,
+  QueryOrder,
+  type QueryOrderMap,
+} from '@mikro-orm/core';
 import { Product, ProductStatus } from './entities/product.entity.js';
 import { Category } from '../categories/entities/category.entity.js';
 import { ProductPhoto } from './entities/product-photo.entity.js';
@@ -17,6 +22,15 @@ import { ProductsRepository } from './products.repository.js';
 import { InsertProductDto } from './dto/insert-product.dto.js';
 import { EditProductDto } from './dto/edit-product.dto.js';
 import { AddPhotoDto } from './dto/add-photo.dto.js';
+import {
+  ProductsQueryDto,
+  ProductSort,
+} from './dto/products-query.dto.js';
+import {
+  UserProductsQueryDto,
+  ProductUserStatus,
+} from './dto/user-products-query.dto.js';
+import { PaginatedProductsDto } from './dto/product-response.dto.js';
 import { ImageService } from '../../common/services/image/image.service.js';
 import { FirebaseService } from '../../common/services/firebase/firebase.service.js';
 
@@ -57,17 +71,64 @@ export class ProductsService {
     return product;
   }
 
-  async findAll(authUser: User): Promise<Product[]> {
-    const products = await this.productRepository.findByDistance(
-      0,
-      0,
-      authUser.id,
-    );
-    return this.productRepository.populate(products, [
+  private getOrderMap(sort?: ProductSort): QueryOrderMap<Product> {
+    switch (sort) {
+      case ProductSort.PRICE:
+        return { price: QueryOrder.ASC };
+      case ProductSort.VIEWS:
+        return { numVisits: QueryOrder.ASC };
+      case ProductSort.DISTANCE:
+      default:
+        return { distance: QueryOrder.ASC };
+    }
+  }
+
+  async findAll(
+    authUser: User,
+    query: ProductsQueryDto = {},
+  ): Promise<PaginatedProductsDto> {
+    const page = query.page && query.page > 0 ? query.page : 1;
+    const limit = 12;
+    const offset = (page - 1) * limit;
+    const orderBy = this.getOrderMap(query.sort);
+
+    const filter: FilterQuery<Product> = {
+      $not: { status: ProductStatus.SOLD },
+    };
+
+    if (query.search?.trim()) {
+      filter.$or = [
+        { title: { $like: `%${query.search.trim()}%` } },
+        { description: { $like: `%${query.search.trim()}%` } },
+      ];
+    }
+
+    const [products, total_products] = await Promise.all([
+      this.productRepository.findByDistance(
+        authUser.lat,
+        authUser.lng,
+        authUser.id,
+        filter,
+        orderBy,
+        null,
+        limit,
+        offset,
+      ),
+      this.productRepository.count(filter),
+    ]);
+
+    const populated = await this.productRepository.populate(products, [
       'owner',
       'mainPhoto',
       'category',
     ]);
+
+    return PaginatedProductsDto.create(
+      populated,
+      page,
+      limit,
+      total_products,
+    );
   }
 
   async findAllByDistance(
@@ -92,64 +153,148 @@ export class ProductsService {
     ]);
   }
 
-  async findBookmarked(authUser: User, idUser: number): Promise<Product[]> {
+  async findBookmarked(
+    authUser: User,
+    query: ProductsQueryDto = {},
+    idUser: number = authUser.id,
+  ): Promise<PaginatedProductsDto> {
+    const page = query.page && query.page > 0 ? query.page : 1;
+    const limit = 12;
+    const offset = (page - 1) * limit;
+    const orderBy = this.getOrderMap(query.sort);
+
     const joinBookmark = new Map<string, any>();
     joinBookmark.set('bookmarks', { 'bookmarks.user': idUser });
-    const products = await this.productRepository.findByDistance(
-      authUser.lat,
-      authUser.lng,
-      authUser.id,
-      null,
-      undefined,
-      joinBookmark,
-    );
-    return this.productRepository.populate(products, [
+
+    let where: FilterQuery<Product> | null = null;
+    if (query.search?.trim()) {
+      where = {
+        $or: [
+          { title: { $like: `%${query.search.trim()}%` } },
+          { description: { $like: `%${query.search.trim()}%` } },
+        ],
+      };
+    }
+
+    const countFilter: FilterQuery<Product> = {
+      bookmarks: { user: idUser } as any,
+      ...(where ? where : {}),
+    };
+
+    const [products, total_products] = await Promise.all([
+      this.productRepository.findByDistance(
+        authUser.lat,
+        authUser.lng,
+        authUser.id,
+        where,
+        orderBy,
+        joinBookmark,
+        limit,
+        offset,
+      ),
+      this.productRepository.count(countFilter),
+    ]);
+
+    const populated = await this.productRepository.populate(products, [
       'owner',
       'mainPhoto',
       'category',
     ]);
+
+    return PaginatedProductsDto.create(
+      populated,
+      page,
+      limit,
+      total_products,
+    );
+  }
+
+  async findByUser(
+    authUser: User,
+    query: UserProductsQueryDto = {},
+  ): Promise<PaginatedProductsDto> {
+    const page = query.page && query.page > 0 ? query.page : 1;
+    const limit = 12;
+    const offset = (page - 1) * limit;
+    const orderBy = this.getOrderMap(query.sort);
+
+    const targetUserId = query.user ?? authUser.id;
+    const status = query.status ?? ProductUserStatus.SELLING;
+
+    let filter: FilterQuery<Product>;
+    switch (status) {
+      case ProductUserStatus.SOLD:
+        filter = { owner: { id: targetUserId }, status: ProductStatus.SOLD };
+        break;
+      case ProductUserStatus.BOUGHT:
+        filter = { soldTo: { id: targetUserId }, status: ProductStatus.SOLD };
+        break;
+      case ProductUserStatus.SELLING:
+      default:
+        filter = {
+          owner: { id: targetUserId },
+          $not: { status: ProductStatus.SOLD },
+        };
+        break;
+    }
+
+    if (query.search?.trim()) {
+      filter.$or = [
+        { title: { $like: `%${query.search.trim()}%` } },
+        { description: { $like: `%${query.search.trim()}%` } },
+      ];
+    }
+
+    const [products, total_products] = await Promise.all([
+      this.productRepository.findByDistance(
+        authUser.lat,
+        authUser.lng,
+        authUser.id,
+        filter,
+        orderBy,
+        null,
+        limit,
+        offset,
+      ),
+      this.productRepository.count(filter),
+    ]);
+
+    const populated = await this.productRepository.populate(products, [
+      'owner',
+      'mainPhoto',
+      'category',
+    ]);
+
+    return PaginatedProductsDto.create(
+      populated,
+      page,
+      limit,
+      total_products,
+    );
   }
 
   async findByOwner(authUser: User, idUser: number): Promise<Product[]> {
-    const products = await this.productRepository.findByDistance(
-      authUser.lat,
-      authUser.lng,
-      authUser.id,
-      { owner: { id: idUser }, $not: { status: ProductStatus.SOLD } },
-    );
-    return this.productRepository.populate(products, [
-      'owner',
-      'mainPhoto',
-      'category',
-    ]);
+    const res = await this.findByUser(authUser, {
+      user: idUser,
+      status: ProductUserStatus.SELLING,
+    });
+    return res.products;
   }
 
   async findSold(authUser: User, idUser: number): Promise<Product[]> {
-    const products = await this.productRepository.findByDistance(
-      authUser.lat,
-      authUser.lng,
-      authUser.id,
-      { owner: { id: idUser }, status: ProductStatus.SOLD },
-    );
-    return this.productRepository.populate(products, [
-      'owner',
-      'mainPhoto',
-      'category',
-    ]);
+    const res = await this.findByUser(authUser, {
+      user: idUser,
+      status: ProductUserStatus.SOLD,
+    });
+    return res.products;
   }
 
   async findBought(authUser: User, idUser: number): Promise<Product[]> {
-    const products = await this.productRepository.findByDistance(
-      authUser.lat,
-      authUser.lng,
-      authUser.id,
-      { soldTo: { id: idUser }, status: ProductStatus.SOLD },
-    );
-    return this.productRepository.populate(products, [
-      'owner',
-      'mainPhoto',
-      'category',
-    ]);
+    const res = await this.findByUser(authUser, {
+      user: idUser,
+      status: ProductUserStatus.BOUGHT,
+    });
+    return res.products;
   }
 
   async findById(authUser: User, id: number): Promise<Product> {

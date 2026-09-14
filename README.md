@@ -5,6 +5,8 @@
 - [Servicios web aplicación SanviPop](#servicios-web-aplicación-sanvipop)
   - [Instalación y puesta en marcha](#instalación-y-puesta-en-marcha)
   - [Configuración del Entorno (.env)](#configuración-del-entorno-env)
+  - [Gestión de la Base de Datos y Semilla Inicial](#gestión-de-la-base-de-datos-y-semilla-inicial)
+    - [Datos generados por el Seed (`npm run db:seed`)](#datos-generados-por-el-seed-npm-run-dbseed)
   - [Documentación Interactiva (Scalar / Swagger)](#documentación-interactiva-scalar--swagger)
   - [Configurando notificaciones Push](#configurando-notificaciones-push)
   - [Ejecución y Pruebas](#ejecución-y-pruebas)
@@ -18,14 +20,9 @@
   - [Colección /categories](#colección-categories)
     - [**GET /categories** (Público)](#get-categories-público)
   - [Colección /products](#colección-products)
-    - [**GET /products** (con soporte de paginación)](#get-products-con-soporte-de-paginación)
-    - [**GET /products/mine**](#get-productsmine)
-    - [**GET /products/bookmarks**](#get-productsbookmarks)
-    - [**GET /products/mine/sold**](#get-productsminesold)
-    - [**GET /products/mine/bought**](#get-productsminebought)
-    - [**GET /products/user/:id**](#get-productsuserid)
-    - [**GET /products/user/:id/sold**](#get-productsuseridsold)
-    - [**GET /products/user/:id/bought**](#get-productsuseridbought)
+    - [**GET /products** (catálogo general con paginación y ordenación)](#get-products-catálogo-general-con-paginación-y-ordenación)
+    - [**GET /products/bookmarks** (productos favoritos con paginación, ordenación y búsqueda)](#get-productsbookmarks-productos-favoritos-con-paginación-ordenación-y-búsqueda)
+    - [**GET /products/user** (productos de usuario con filtros, paginación y ordenación)](#get-productsuser-productos-de-usuario-con-filtros-paginación-y-ordenación)
     - [**GET /products/:id**](#get-productsid)
     - [**POST /products**](#post-products)
     - [**PUT /products/:id**](#put-productsid)
@@ -87,6 +84,34 @@ DB_NAME=sanvipop.db
 - **JWT_EXPIRES_IN**: Tiempo de expiración del token (configurado a **7 días**: `7d`).
 - **GOOGLE_ID**: Identificador del cliente de Google para validar inicios de sesión con OAuth2.
 - **DB_NAME**: Ruta/nombre del archivo SQLite (`sanvipop.db`).
+
+## Gestión de la Base de Datos y Semilla Inicial
+
+El proyecto incluye scripts configurados en `package.json` para gestionar el ciclo de vida de la base de datos y su esquema mediante el CLI de **MikroORM**:
+
+```bash
+# Eliminar todas las tablas del esquema
+$ npm run db:drop
+
+# Crear las tablas a partir de las entidades
+$ npm run db:create
+
+# Actualizar el esquema si se modifican las entidades
+$ npm run db:update
+
+# Poblar la base de datos con datos de prueba iniciales
+$ npm run db:seed
+```
+
+### Datos generados por el Seed (`npm run db:seed`)
+- **8 Categorías oficiales:** Informática, Telefonía, Hogar, Deportes, Motor, Moda, Juegos, Otros.
+- **3 Usuarios de prueba** (contraseña de todos: `Password123!`):
+  - `arturo@sanvipop.es` (San Vicente del Raspeig)
+  - `maria@sanvipop.es` (Alicante)
+  - `carlos@sanvipop.es` (San Vicente Centro)
+- **8 Productos de prueba:** Catálogo variado en distintas categorías, con estados disponibles (`AVAILABLE`) y vendidos (`SOLD`), fotografías asociadas y asignación de `mainPhoto`.
+- **1 Favorito:** El usuario Arturo tiene en favoritos la bicicleta de montaña de María.
+- **1 Transacción completada:** Producto vendido de Carlos a Arturo con calificaciones (5 estrellas) y comentarios de ambas partes.
 
 ## Documentación Interactiva (Scalar / Swagger)
 
@@ -292,16 +317,25 @@ Devuelve todas las categorías de productos disponibles en la base de datos.
 
 Todos los servicios de esta colección requieren cabecera `Authorization: Bearer <auth_token>`.
 
-### **GET /products** (con soporte de paginación)
+### **GET /products** (catálogo general con paginación y ordenación)
 
-Devuelve los productos disponibles (`status` distinto de 3 / no vendidos) ordenados por distancia calculada mediante la fórmula de Haversine respecto a la posición del usuario autenticado.
+Devuelve los productos disponibles (`status` distinto de 3 / no vendidos) ordenados de forma ascendente según el criterio indicado (por defecto por distancia calculada mediante la fórmula de Haversine respecto a la posición del usuario autenticado). Permite filtrar por texto en el título o descripción. Siempre se devuelven 12 resultados por página.
 
 **Parámetros de consulta (Query params, opcionales):**
-- `limit` (número, opcional): Cantidad máxima de productos a devolver (1 a 100).
-- `offset` (número, opcional): Número de productos a omitir para paginación (>= 0).
+- `search` (cadena, opcional): Cadena de texto para filtrar productos cuyo título o descripción contenga dicho término.
+- `page` (número, opcional): Número de página para la paginación (>= 1, por defecto 1).
+- `sort` (cadena, opcional): Criterio de ordenación ascendente. Valores posibles:
+  - `distance` (por defecto): De menor a mayor distancia.
+  - `price`: De menor a mayor precio.
+  - `views`: De menor a mayor número de visitas (`numVisits`).
 
-*Ejemplo de petición con paginación:*
-`GET /products?limit=10&offset=20`
+*Ejemplos de peticiones:*
+- Página 1 por distancia: `GET /products`
+- Filtrar por término de búsqueda: `GET /products?search=bici`
+- Página 2 por distancia: `GET /products?page=2`
+- Ordenados por precio más bajo: `GET /products?sort=price`
+- Ordenados por menos visitas: `GET /products?sort=views`
+- Página 3 ordenados por precio buscando "bici": `GET /products?search=bici&page=3&sort=price`
 
 **Respuesta exitosa (200 OK):**
 
@@ -333,65 +367,58 @@ Devuelve los productos disponibles (`status` distinto de 3 / no vendidos) ordena
       "bookmarked": false,
       "mine": false
     }
-  ]
+  ],
+  "page": 1,
+  "total_pages": 1,
+  "total_products": 7
 }
 ```
 
 ---
 
-### **GET /products/mine**
+### **GET /products/bookmarks** (productos favoritos con paginación, ordenación y búsqueda)
 
-Devuelve los productos activos a la venta publicados por el usuario autenticado.
+Devuelve los productos guardados en favoritos por el usuario autenticado, con paginación fija de 12 elementos por página, ordenación ascendente configurable y búsqueda por texto.
 
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ] }`
+**Parámetros de consulta (Query params, opcionales):**
+- `page` (número, opcional): Número de página para la paginación (>= 1, por defecto 1). Siempre se devuelven 12 resultados.
+- `sort` (cadena, opcional): Criterio de ordenación ascendente (`distance` [por defecto], `price`, `views`).
+- `search` (cadena, opcional): Cadena de texto para filtrar productos favoritos cuyo título o descripción contenga dicho término.
 
----
+*Ejemplos de peticiones:*
+- Mis favoritos (página 1 por defecto): `GET /products/bookmarks`
+- Mis favoritos en página 2: `GET /products/bookmarks?page=2`
+- Mis favoritos ordenados por precio: `GET /products/bookmarks?sort=price`
+- Buscar en mis favoritos: `GET /products/bookmarks?search=bici`
 
-### **GET /products/bookmarks**
-
-Devuelve la lista de productos que el usuario autenticado ha guardado en sus favoritos.
-
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ] }`
-
----
-
-### **GET /products/mine/sold**
-
-Devuelve los productos que el usuario autenticado ya ha vendido (`status = 3`).
-
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ] }`
+**Respuesta exitosa (200 OK):** `{ "products": [ ... ], "page": 1, "total_pages": 1, "total_products": 2 }`
 
 ---
 
-### **GET /products/mine/bought**
+### **GET /products/user** (productos de usuario con filtros, paginación y ordenación)
 
-Devuelve los productos comprados por el usuario autenticado a otros vendedores.
+Devuelve los productos relacionados con un usuario (por defecto el usuario autenticado), filtrados según su estado (`selling`, `sold` o `bought`), con paginación fija de 12 elementos, ordenación ascendente configurable y filtro por texto en título o descripción.
 
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ] }`
+**Parámetros de consulta (Query params, opcionales):**
+- `search` (cadena, opcional): Cadena de texto para filtrar productos cuyo título o descripción contenga dicho término.
+- `page` (número, opcional): Número de página para la paginación (>= 1, por defecto 1). Siempre se devuelven 12 resultados.
+- `sort` (cadena, opcional): Criterio de ordenación ascendente (`distance` [por defecto], `price`, `views`).
+- `user` (número, opcional): ID del usuario a consultar. Si no se especifica, devuelve los productos del usuario autenticado.
+- `status` (cadena, opcional): Estado de los productos a consultar. Valores posibles:
+  - `selling` (por defecto): Productos actualmente a la venta (no vendidos).
+  - `sold`: Productos vendidos por el usuario.
+  - `bought`: Productos comprados por el usuario.
 
----
+*Ejemplos de peticiones:*
+- Mis productos en venta: `GET /products/user` (o `GET /products/user?status=selling`)
+- Filtrar mis productos por texto: `GET /products/user?search=movil`
+- Mis productos vendidos: `GET /products/user?status=sold`
+- Mis productos comprados: `GET /products/user?status=bought`
+- Productos en venta de otro usuario buscando "bici" ordenados por precio: `GET /products/user?user=5&search=bici&sort=price`
+- Productos vendidos de otro usuario: `GET /products/user?user=5&status=sold`
+- Productos comprados de otro usuario: `GET /products/user?user=5&status=bought`
 
-### **GET /products/user/:id**
-
-Devuelve los productos actualmente en venta pertenecientes al usuario cuyo ID se especifica en la URL.
-
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ] }`
-
----
-
-### **GET /products/user/:id/sold**
-
-Devuelve los productos vendidos por el usuario cuyo ID se especifica en la URL.
-
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ] }`
-
----
-
-### **GET /products/user/:id/bought**
-
-Devuelve los productos comprados por el usuario cuyo ID se especifica en la URL.
-
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ] }`
+**Respuesta exitosa (200 OK):** `{ "products": [ ... ], "page": 1, "total_pages": 1, "total_products": 7 }`
 
 ---
 

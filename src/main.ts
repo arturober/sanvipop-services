@@ -10,6 +10,10 @@ import { AppModule } from './app.module.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+
+  app.use(express.json({ limit: '8mb' }));
+  app.use(express.urlencoded({ limit: '8mb', extended: true }));
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
