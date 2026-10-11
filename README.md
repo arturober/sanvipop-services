@@ -109,7 +109,7 @@ $ npm run db:seed
   - `arturo@sanvipop.es` (San Vicente del Raspeig)
   - `maria@sanvipop.es` (Alicante)
   - `carlos@sanvipop.es` (San Vicente Centro)
-- **8 Productos de prueba:** Catálogo variado en distintas categorías, con estados disponibles (`AVAILABLE`) y vendidos (`SOLD`), fotografías asociadas y asignación de `mainPhoto`.
+- **14 Productos de prueba:** Catálogo variado en distintas categorías, con estados disponibles (`AVAILABLE`) y vendidos (`SOLD`), fotografías asociadas y asignación de `mainPhoto`.
 - **1 Favorito:** El usuario Arturo tiene en favoritos la bicicleta de montaña de María.
 - **1 Transacción completada:** Producto vendido de Carlos a Arturo con calificaciones (5 estrellas) y comentarios de ambas partes.
 

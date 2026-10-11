@@ -157,8 +157,68 @@ async function runSeed() {
         numVisits: 31,
       });
 
+      const p9 = forkEm.create(Product, {
+        title: 'Pala de pádel Bullpadel Vertex 03',
+        description: 'Pala de pádel Bullpadel de potencia y control, carbono 12K, protector de aluminio, muy cuidada con pocos partidos.',
+        price: 110.0,
+        category: categories[3], // Deportes
+        owner: user1,
+        status: ProductStatus.AVAILABLE,
+        numVisits: 37,
+      });
+
+      const p10 = forkEm.create(Product, {
+        title: 'Cafetera espresso DeLonghi Dedica',
+        description: 'Cafetera de bomba tradicional en acero inoxidable, 15 bares de presión, vaporizador para capuchinos, incluye filtros individuales y dobles.',
+        price: 95.0,
+        category: categories[2], // Hogar
+        owner: user2,
+        status: ProductStatus.AVAILABLE,
+        numVisits: 42,
+      });
+
+      const p11 = forkEm.create(Product, {
+        title: 'Guitarra acústica Yamaha F310',
+        description: 'Guitarra acústica clásica de iniciación con funda acolchada, afinador digital y juego de cuerdas nuevo. Sonido cálido y equilibrado.',
+        price: 85.0,
+        category: categories[7], // Otros
+        owner: user3,
+        status: ProductStatus.AVAILABLE,
+        numVisits: 28,
+      });
+
+      const p12 = forkEm.create(Product, {
+        title: 'Smartwatch Samsung Galaxy Watch 5',
+        description: 'Reloj inteligente 44mm color zafiro, sensor de salud avanzado, GPS, resistencia al agua 50m, cargador magnético rápido.',
+        price: 120.0,
+        category: categories[1], // Telefonía
+        owner: user1,
+        status: ProductStatus.AVAILABLE,
+        numVisits: 60,
+      });
+
+      const p13 = forkEm.create(Product, {
+        title: 'Zapatillas Nike Air Jordan 1 Retro',
+        description: 'Zapatillas Nike Air Jordan 1 en color rojo, blanco y negro (Chicago), talla 42. Edición original con caja y cordones adicionales.',
+        price: 140.0,
+        category: categories[5], // Moda
+        owner: user2,
+        status: ProductStatus.AVAILABLE,
+        numVisits: 75,
+      });
+
+      const p14 = forkEm.create(Product, {
+        title: 'Juego de mesa Catan Plus',
+        description: 'Edición Catan Plus que incluye juego básico y ampliación para 5-6 jugadores más miniexpansiones. Componentes completos e impecables.',
+        price: 35.0,
+        category: categories[6], // Juegos
+        owner: user3,
+        status: ProductStatus.AVAILABLE,
+        numVisits: 19,
+      });
+
       // 5. Fotos de productos y foto principal
-      const products = [p1, p2, p3, p4, p5, p6, p7, p8];
+      const products = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14];
       products.forEach((prod, index) => {
         const photo = forkEm.create(ProductPhoto, {
           url: `img/products/product-${index + 1}.jpg`,

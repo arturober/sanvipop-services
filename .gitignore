@@ -75,6 +75,12 @@ img/products/*
 !img/products/product-6.jpg
 !img/products/product-7.jpg
 !img/products/product-8.jpg
+!img/products/product-9.jpg
+!img/products/product-10.jpg
+!img/products/product-11.jpg
+!img/products/product-12.jpg
+!img/products/product-13.jpg
+!img/products/product-14.jpg
 
 img/users/*
 !img/users/.gitkeep
