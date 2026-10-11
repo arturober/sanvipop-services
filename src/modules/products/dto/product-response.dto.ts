@@ -207,54 +207,110 @@ export class ProductResponseDto {
 
     let mainPhotoUrl: string | undefined;
     if (product.mainPhoto) {
-      const rawUrl =
-        typeof product.mainPhoto === 'string'
-          ? product.mainPhoto
-          : (product.mainPhoto as any).url;
-      if (rawUrl) {
-        mainPhotoUrl = buildFullImageUrl(req, rawUrl);
+      const isInit =
+        typeof (product.mainPhoto as any).isInitialized === 'function'
+          ? (product.mainPhoto as any).isInitialized()
+          : (product.mainPhoto as any).__helper &&
+              typeof (product.mainPhoto as any).__helper.isInitialized === 'function'
+            ? (product.mainPhoto as any).__helper.isInitialized()
+            : true;
+      if (isInit) {
+        const rawUrl =
+          typeof product.mainPhoto === 'string'
+            ? product.mainPhoto
+            : (product.mainPhoto as any).url;
+        if (rawUrl) {
+          mainPhotoUrl = buildFullImageUrl(req, rawUrl);
+        }
       }
     }
 
     let photosList: ProductPhotoItemDto[] | undefined;
     if (product.photos) {
-      const rawPhotos =
-        typeof (product.photos as any).getItems === 'function'
+      const isCollection =
+        typeof (product.photos as any).getItems === 'function';
+      const isInit = isCollection
+        ? typeof (product.photos as any).isInitialized === 'function'
+          ? (product.photos as any).isInitialized()
+          : true
+        : true;
+
+      if (isInit) {
+        const rawPhotos = isCollection
           ? (product.photos as any).getItems()
           : Array.isArray(product.photos)
             ? product.photos
             : [];
 
-      if (rawPhotos.length > 0) {
-        photosList = rawPhotos.map((photo: any) => ({
-          id: photo.id,
-          url: buildFullImageUrl(req, photo.url),
-        }));
+        if (rawPhotos.length > 0) {
+          photosList = rawPhotos.map((photo: any) => ({
+            id: photo.id,
+            url: buildFullImageUrl(req, photo.url),
+          }));
+        }
       }
     }
 
     let ratingDto: ProductTransactionResponseDto | undefined;
     if (product.rating) {
       const r = product.rating as any;
-      ratingDto = {
-        sellerRating: r.sellerRating,
-        buyerRating: r.buyerRating,
-        sellerComment: r.sellerComment,
-        buyerComment: r.buyerComment,
-        dateTransaction: r.dateTransaction,
-      };
+      const isInit =
+        typeof r.isInitialized === 'function'
+          ? r.isInitialized()
+          : r.__helper && typeof r.__helper.isInitialized === 'function'
+            ? r.__helper.isInitialized()
+            : true;
+      if (isInit && (r.sellerRating !== undefined || r.buyerRating !== undefined)) {
+        ratingDto = {
+          sellerRating: r.sellerRating,
+          buyerRating: r.buyerRating,
+          sellerComment: r.sellerComment,
+          buyerComment: r.buyerComment,
+          dateTransaction: r.dateTransaction,
+        };
+      }
     }
 
     let soldToDto: ProductOwnerResponseDto | undefined;
     if (product.soldTo) {
-      soldToDto = {
-        id: product.soldTo.id,
-        name: product.soldTo.name,
-        email: product.soldTo.email,
-        lat: product.soldTo.lat,
-        lng: product.soldTo.lng,
-        photo: buildFullImageUrl(req, product.soldTo.photo),
-      };
+      const s = product.soldTo as any;
+      const isInit =
+        typeof s.isInitialized === 'function'
+          ? s.isInitialized()
+          : s.__helper && typeof s.__helper.isInitialized === 'function'
+            ? s.__helper.isInitialized()
+            : true;
+      if (isInit && s.name !== undefined) {
+        soldToDto = {
+          id: s.id,
+          name: s.name,
+          email: s.email,
+          lat: s.lat,
+          lng: s.lng,
+          photo: buildFullImageUrl(req, s.photo),
+        };
+      }
+    }
+
+    let ownerDto: ProductOwnerResponseDto | undefined;
+    if (product.owner) {
+      const o = product.owner as any;
+      const isInit =
+        typeof o.isInitialized === 'function'
+          ? o.isInitialized()
+          : o.__helper && typeof o.__helper.isInitialized === 'function'
+            ? o.__helper.isInitialized()
+            : true;
+      if (isInit) {
+        ownerDto = {
+          id: o.id,
+          name: o.name,
+          email: o.email,
+          lat: o.lat,
+          lng: o.lng,
+          photo: buildFullImageUrl(req, o.photo),
+        };
+      }
     }
 
     const dto = new ProductResponseDto();
@@ -269,16 +325,7 @@ export class ProductResponseDto {
       id: product.category?.id,
       name: product.category?.name,
     };
-    dto.owner = product.owner
-      ? {
-          id: product.owner.id,
-          name: product.owner.name,
-          email: product.owner.email,
-          lat: product.owner.lat,
-          lng: product.owner.lng,
-          photo: buildFullImageUrl(req, product.owner.photo),
-        }
-      : (undefined as any);
+    dto.owner = ownerDto as any;
     dto.soldTo = soldToDto;
     dto.mainPhoto = mainPhotoUrl;
     dto.photos = photosList;
