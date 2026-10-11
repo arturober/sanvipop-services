@@ -65,6 +65,22 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 *.tsbuildinfo
 
 img/products/*
+!.gitkeep
+!img/products/.gitkeep
+!img/products/product-1.jpg
+!img/products/product-2.jpg
+!img/products/product-3.jpg
+!img/products/product-4.jpg
+!img/products/product-5.jpg
+!img/products/product-6.jpg
+!img/products/product-7.jpg
+!img/products/product-8.jpg
+
 img/users/*
+!img/users/.gitkeep
+!img/users/arturo.jpg
+!img/users/maria.jpg
+!img/users/carlos.jpg
 !img/users/1791727618460-0cc713f7-f2d5-4a82-9f65-0950682f3541.jpg
+
 
