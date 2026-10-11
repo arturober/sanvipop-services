@@ -64,3 +64,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # TypeScript build info
 *.tsbuildinfo
 
+img/products/*
+img/users/*
+!img/users/1791727618460-0cc713f7-f2d5-4a82-9f65-0950682f3541.jpg
+
