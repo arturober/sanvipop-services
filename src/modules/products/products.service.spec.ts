@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@mikro-orm/nestjs';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { vi, describe, beforeEach, it, expect } from 'vitest';
 import { ProductsService } from './products.service.js';
 import { Product, ProductStatus } from './entities/product.entity.js';
@@ -18,19 +18,35 @@ import { ProductUserStatus } from './dto/user-products-query.dto.js';
 
 describe('ProductsService', () => {
   let service: ProductsService;
+  let emMock: {
+    remove: ReturnType<typeof vi.fn>;
+    flush: ReturnType<typeof vi.fn>;
+  };
+  let imageServiceMock: {
+    removeImage: ReturnType<typeof vi.fn>;
+  };
   let productRepoMock: {
     findOne: ReturnType<typeof vi.fn>;
     findByDistance: ReturnType<typeof vi.fn>;
     count: ReturnType<typeof vi.fn>;
     populate: ReturnType<typeof vi.fn>;
+    getEntityManager: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
+    emMock = {
+      remove: vi.fn(),
+      flush: vi.fn().mockResolvedValue(undefined),
+    };
+    imageServiceMock = {
+      removeImage: vi.fn().mockResolvedValue(undefined),
+    };
     productRepoMock = {
       findOne: vi.fn(),
       findByDistance: vi.fn().mockResolvedValue([]),
       count: vi.fn().mockResolvedValue(0),
       populate: vi.fn().mockImplementation((products) => Promise.resolve(products)),
+      getEntityManager: vi.fn().mockReturnValue(emMock),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -62,7 +78,7 @@ describe('ProductsService', () => {
         },
         {
           provide: ImageService,
-          useValue: {},
+          useValue: imageServiceMock,
         },
         {
           provide: FirebaseService,
@@ -381,6 +397,42 @@ describe('ProductsService', () => {
       });
 
       await expect(service.buyProduct(buyer, 11)).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('delete', () => {
+    const owner = { id: 1 } as User;
+    const otherUser = { id: 2 } as User;
+
+    it('should throw NotFoundException if product is not found', async () => {
+      productRepoMock.findOne.mockResolvedValue(null);
+      await expect(service.delete(owner, 999)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if user is not the owner', async () => {
+      productRepoMock.findOne.mockResolvedValue({
+        id: 1,
+        owner: { id: 99 },
+      });
+      await expect(service.delete(otherUser, 1)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should remove product, flush entity manager, and remove photos from disk', async () => {
+      const mockPhoto = { id: 10, url: 'img/products/p1.jpg' };
+      const mockProduct = {
+        id: 1,
+        owner: { id: owner.id },
+        photos: {
+          getItems: () => [mockPhoto],
+        },
+      };
+      productRepoMock.findOne.mockResolvedValue(mockProduct);
+
+      await service.delete(owner, 1);
+
+      expect(emMock.remove).toHaveBeenCalledWith(mockProduct);
+      expect(emMock.flush).toHaveBeenCalled();
+      expect(imageServiceMock.removeImage).toHaveBeenCalledWith('img/products/p1.jpg');
     });
   });
 });

@@ -57,6 +57,7 @@ export class Product {
     entity: () => ProductPhoto,
     fieldName: 'mainPhoto',
     cascade: [Cascade.MERGE],
+    deleteRule: 'set null',
     nullable: true,
     index: true,
     unique: true,
@@ -67,14 +68,29 @@ export class Product {
   @ManyToOne({ entity: () => User, fieldName: 'soldTo', cascade: [Cascade.MERGE], nullable: true, index: true })
   soldTo?: Rel<User>;
 
-  @OneToOne({ entity: () => Transaction, mappedBy: (t: Transaction) => t.product })
+  @OneToOne({
+    entity: () => Transaction,
+    mappedBy: (t: Transaction) => t.product,
+    cascade: [Cascade.ALL],
+    orphanRemoval: true,
+  })
   rating?: Rel<Transaction>;
 
-  @OneToMany({ entity: () => ProductPhoto, mappedBy: (photo: ProductPhoto) => photo.product, cascade: [Cascade.PERSIST] })
+  @OneToMany({
+    entity: () => ProductPhoto,
+    mappedBy: (photo: ProductPhoto) => photo.product,
+    cascade: [Cascade.ALL],
+    orphanRemoval: true,
+  })
   @Transform((photos: any) => (photos.value?.isInitialized() ? photos.value.getItems() : null))
   photos = new Collection<ProductPhoto>(this);
 
-  @OneToMany({ entity: () => ProductBookmark, mappedBy: (bm: ProductBookmark) => bm.product })
+  @OneToMany({
+    entity: () => ProductBookmark,
+    mappedBy: (bm: ProductBookmark) => bm.product,
+    cascade: [Cascade.ALL],
+    orphanRemoval: true,
+  })
   @Exclude()
   bookmarks = new Collection<ProductBookmark>(this);
 

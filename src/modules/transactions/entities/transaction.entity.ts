@@ -30,6 +30,7 @@ export class Transaction {
     inversedBy: 'rating',
     index: true,
     joinColumn: 'idProduct',
+    deleteRule: 'cascade',
   })
   @Exclude()
   product!: Rel<Product>;

@@ -18,8 +18,8 @@ export class ProductsRepository extends EntityRepository<Product> {
       .select([
         'p.*',
         't.idProduct as rating',
-        raw(`haversine(u.lat, u.lng, ${lat}, ${lng}) AS distance`),
-        raw(`exists(SELECT 1 FROM product_bookmark pb WHERE pb.idUser = ${idLogged} AND pb.idProduct = p.id) AS bookmarked`),
+        raw(`haversine(u.lat, u.lng, ${lat}, ${lng}) as \`distance\``),
+        raw(`exists(SELECT 1 FROM product_bookmark pb WHERE pb.idUser = ${idLogged} AND pb.idProduct = p.id) as \`bookmarked\``),
       ] as any)
       .join('p.owner', 'u')
       .leftJoin('p.rating', 't');
@@ -59,8 +59,8 @@ export class ProductsRepository extends EntityRepository<Product> {
       .createQueryBuilder(Product, 'p')
       .select([
         'p.*',
-        raw(`haversine(u.lat, u.lng, ${lat}, ${lng}) AS distance`),
-        raw(`exists(SELECT 1 FROM product_bookmark pb WHERE pb.idUser = ${idLogged} AND pb.idProduct = p.id) AS bookmarked`),
+        raw(`haversine(u.lat, u.lng, ${lat}, ${lng}) as \`distance\``),
+        raw(`exists(SELECT 1 FROM product_bookmark pb WHERE pb.idUser = ${idLogged} AND pb.idProduct = p.id) as \`bookmarked\``),
       ] as any)
       .join('p.owner', 'u')
       .where({ id: idProduct })

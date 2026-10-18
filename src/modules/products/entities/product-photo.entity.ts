@@ -9,7 +9,13 @@ export class ProductPhoto {
   id!: number;
 
   @Exclude()
-  @ManyToOne({ entity: () => Product, fieldName: 'idProduct', cascade: [Cascade.MERGE], index: true })
+  @ManyToOne({
+    entity: () => Product,
+    fieldName: 'idProduct',
+    cascade: [Cascade.MERGE],
+    deleteRule: 'cascade',
+    index: true,
+  })
   product!: Rel<Product>;
 
   @Property({ type: 'string', length: 250 })

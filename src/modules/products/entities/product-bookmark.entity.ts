@@ -5,10 +5,23 @@ import { User } from '../../users/entities/user.entity.js';
 
 @Entity({ tableName: 'product_bookmark' })
 export class ProductBookmark {
-  @ManyToOne({ entity: () => Product, fieldName: 'idProduct', cascade: [Cascade.ALL], primary: true })
+  @ManyToOne({
+    entity: () => Product,
+    fieldName: 'idProduct',
+    cascade: [Cascade.MERGE],
+    primary: true,
+    deleteRule: 'cascade',
+  })
   product!: Rel<Product>;
 
-  @ManyToOne({ entity: () => User, fieldName: 'idUser', cascade: [Cascade.ALL], primary: true, index: 'idUser' })
+  @ManyToOne({
+    entity: () => User,
+    fieldName: 'idUser',
+    cascade: [Cascade.MERGE],
+    primary: true,
+    index: 'idUser',
+    deleteRule: 'cascade',
+  })
   user!: Rel<User>;
 
   constructor(product?: any, user?: any) {
