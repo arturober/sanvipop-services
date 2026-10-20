@@ -20,9 +20,7 @@
   - [Colección /categories](#colección-categories)
     - [**GET /categories** (Público)](#get-categories-público)
   - [Colección /products](#colección-products)
-    - [**GET /products** (catálogo general con paginación y ordenación)](#get-products-catálogo-general-con-paginación-y-ordenación)
-    - [**GET /products/bookmarks** (productos favoritos con paginación, ordenación y búsqueda)](#get-productsbookmarks-productos-favoritos-con-paginación-ordenación-y-búsqueda)
-    - [**GET /products/user** (productos de usuario con filtros, paginación y ordenación)](#get-productsuser-productos-de-usuario-con-filtros-paginación-y-ordenación)
+    - [**GET /products** (catálogo general, favoritos o productos de usuario con filtros, paginación y ordenación)](#get-products-catálogo-general-favoritos-o-productos-de-usuario-con-filtros-paginación-y-ordenación)
     - [**GET /products/:id**](#get-productsid)
     - [**POST /products**](#post-products)
     - [**PUT /products/:id**](#put-productsid)
@@ -317,25 +315,42 @@ Devuelve todas las categorías de productos disponibles en la base de datos.
 
 Todos los servicios de esta colección requieren cabecera `Authorization: Bearer <auth_token>`.
 
-### **GET /products** (catálogo general con paginación y ordenación)
+### **GET /products** (catálogo general, favoritos o productos de usuario con filtros, paginación y ordenación)
 
-Devuelve los productos disponibles (`status` distinto de 3 / no vendidos) ordenados de forma ascendente según el criterio indicado (por defecto por distancia calculada mediante la fórmula de Haversine respecto a la posición del usuario autenticado). Permite filtrar por texto en el título o descripción. Siempre se devuelven 12 resultados por página.
+Devuelve los productos del catálogo general, los favoritos o los asociados a un usuario según los parámetros de consulta enviados. Siempre se devuelven 12 resultados por página con paginación fija, ordenación ascendente configurable y soporte de búsqueda por texto.
+
+- **Sin `status` ni `user`**: Consulta el **catálogo general** de productos disponibles (`status` no vendido).
+- **Con `status=bookmarks`**: Consulta los **productos favoritos** del usuario (`authUser` o `user`).
+- **Con `status=selling|sold|bought` o con `user`**: Consulta los productos de un usuario filtrados por su estado (`selling` por defecto, `sold` o `bought`).
 
 **Parámetros de consulta (Query params, opcionales):**
-- `search` (cadena, opcional): Cadena de texto para filtrar productos cuyo título o descripción contenga dicho término.
 - `page` (número, opcional): Número de página para la paginación (>= 1, por defecto 1).
 - `sort` (cadena, opcional): Criterio de ordenación ascendente. Valores posibles:
-  - `distance` (por defecto): De menor a mayor distancia.
+  - `distance` (por defecto): De menor a mayor distancia respecto a la ubicación del usuario.
   - `price`: De menor a mayor precio.
   - `views`: De menor a mayor número de visitas (`numVisits`).
+- `search` (cadena, opcional): Cadena de texto para filtrar productos cuyo título o descripción contenga dicho término.
+- `user` (número, opcional): ID del usuario a consultar (si se omite y se solicita estado o favoritos, se aplica sobre el usuario autenticado).
+- `status` (cadena, opcional): Estado de los productos a consultar:
+  - `bookmarks`: Productos guardados en favoritos.
+  - `selling`: Productos actualmente a la venta (no vendidos).
+  - `sold`: Productos vendidos por el usuario.
+  - `bought`: Productos comprados por el usuario.
 
 *Ejemplos de peticiones:*
-- Página 1 por distancia: `GET /products`
-- Filtrar por término de búsqueda: `GET /products?search=bici`
-- Página 2 por distancia: `GET /products?page=2`
-- Ordenados por precio más bajo: `GET /products?sort=price`
-- Ordenados por menos visitas: `GET /products?sort=views`
-- Página 3 ordenados por precio buscando "bici": `GET /products?search=bici&page=3&sort=price`
+- Catálogo general (página 1 por distancia): `GET /products`
+- Filtrar catálogo por término de búsqueda: `GET /products?search=bici`
+- Catálogo ordenado por precio: `GET /products?sort=price`
+- Mis favoritos: `GET /products?status=bookmarks`
+- Mis favoritos ordenados por precio: `GET /products?status=bookmarks&sort=price`
+- Buscar en mis favoritos: `GET /products?status=bookmarks&search=bici`
+- Favoritos de otro usuario: `GET /products?status=bookmarks&user=5`
+- Mis productos en venta: `GET /products?status=selling`
+- Mis productos vendidos: `GET /products?status=sold`
+- Mis productos comprados: `GET /products?status=bought`
+- Productos en venta de otro usuario buscando "bici" ordenados por precio: `GET /products?user=5&search=bici&sort=price`
+- Productos vendidos de otro usuario: `GET /products?user=5&status=sold`
+- Productos comprados de otro usuario: `GET /products?user=5&status=bought`
 
 **Respuesta exitosa (200 OK):**
 
@@ -373,52 +388,6 @@ Devuelve los productos disponibles (`status` distinto de 3 / no vendidos) ordena
   "total_products": 7
 }
 ```
-
----
-
-### **GET /products/bookmarks** (productos favoritos con paginación, ordenación y búsqueda)
-
-Devuelve los productos guardados en favoritos por el usuario autenticado, con paginación fija de 12 elementos por página, ordenación ascendente configurable y búsqueda por texto.
-
-**Parámetros de consulta (Query params, opcionales):**
-- `page` (número, opcional): Número de página para la paginación (>= 1, por defecto 1). Siempre se devuelven 12 resultados.
-- `sort` (cadena, opcional): Criterio de ordenación ascendente (`distance` [por defecto], `price`, `views`).
-- `search` (cadena, opcional): Cadena de texto para filtrar productos favoritos cuyo título o descripción contenga dicho término.
-
-*Ejemplos de peticiones:*
-- Mis favoritos (página 1 por defecto): `GET /products/bookmarks`
-- Mis favoritos en página 2: `GET /products/bookmarks?page=2`
-- Mis favoritos ordenados por precio: `GET /products/bookmarks?sort=price`
-- Buscar en mis favoritos: `GET /products/bookmarks?search=bici`
-
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ], "page": 1, "total_pages": 1, "total_products": 2 }`
-
----
-
-### **GET /products/user** (productos de usuario con filtros, paginación y ordenación)
-
-Devuelve los productos relacionados con un usuario (por defecto el usuario autenticado), filtrados según su estado (`selling`, `sold` o `bought`), con paginación fija de 12 elementos, ordenación ascendente configurable y filtro por texto en título o descripción.
-
-**Parámetros de consulta (Query params, opcionales):**
-- `search` (cadena, opcional): Cadena de texto para filtrar productos cuyo título o descripción contenga dicho término.
-- `page` (número, opcional): Número de página para la paginación (>= 1, por defecto 1). Siempre se devuelven 12 resultados.
-- `sort` (cadena, opcional): Criterio de ordenación ascendente (`distance` [por defecto], `price`, `views`).
-- `user` (número, opcional): ID del usuario a consultar. Si no se especifica, devuelve los productos del usuario autenticado.
-- `status` (cadena, opcional): Estado de los productos a consultar. Valores posibles:
-  - `selling` (por defecto): Productos actualmente a la venta (no vendidos).
-  - `sold`: Productos vendidos por el usuario.
-  - `bought`: Productos comprados por el usuario.
-
-*Ejemplos de peticiones:*
-- Mis productos en venta: `GET /products/user` (o `GET /products/user?status=selling`)
-- Filtrar mis productos por texto: `GET /products/user?search=movil`
-- Mis productos vendidos: `GET /products/user?status=sold`
-- Mis productos comprados: `GET /products/user?status=bought`
-- Productos en venta de otro usuario buscando "bici" ordenados por precio: `GET /products/user?user=5&search=bici&sort=price`
-- Productos vendidos de otro usuario: `GET /products/user?user=5&status=sold`
-- Productos comprados de otro usuario: `GET /products/user?user=5&status=bought`
-
-**Respuesta exitosa (200 OK):** `{ "products": [ ... ], "page": 1, "total_pages": 1, "total_products": 7 }`
 
 ---
 

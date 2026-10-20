@@ -55,7 +55,7 @@ export class RegisterUserDto {
       ? v.value.split(',')[1] || v.value
       : (v.value as string),
   )
-  avatar!: string;
+  photo!: string;
 
   /**
    * Latitud geográfica para ubicación por cercanía

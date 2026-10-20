@@ -22,8 +22,7 @@ import { EditProductDto } from './dto/edit-product.dto.js';
 import { AddPhotoDto } from './dto/add-photo.dto.js';
 import { AuthUser } from '../../common/decorators/user.decorator.js';
 import { User } from '../users/entities/user.entity.js';
-import { ProductsQueryDto } from './dto/products-query.dto.js';
-import { UserProductsQueryDto } from './dto/user-products-query.dto.js';
+import { UserProductsQueryDto, ProductUserStatus } from './dto/user-products-query.dto.js';
 import {
   PaginatedProductsResponseDto,
   SingleProductResponseDto,
@@ -38,44 +37,26 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get available products with pagination and sorting' })
+  @ApiOperation({ summary: 'Get products with pagination, sorting and optional user or status filter' })
   @ApiResponse({ status: 200, description: 'List of products with pagination info' })
   async getAllProducts(
-    @AuthUser() authUser: User,
-    @Query(new ValidationPipe({ transform: true, whitelist: true }))
-    query: ProductsQueryDto,
-    @Req() req?: Request,
-  ): Promise<PaginatedProductsResponseDto> {
-    const result = await this.productsService.findAll(authUser, query);
-    return PaginatedProductsResponseDto.from(result, req, authUser.id);
-  }
-
-  @Get('bookmarks')
-  @ApiOperation({ summary: 'Get products bookmarked by current user with pagination and sorting' })
-  @ApiResponse({ status: 200, description: 'Bookmarked products list with pagination info' })
-  async getBookmarkedProducts(
-    @AuthUser() authUser: User,
-    @Query(new ValidationPipe({ transform: true, whitelist: true }))
-    query: ProductsQueryDto,
-    @Req() req?: Request,
-  ): Promise<PaginatedProductsResponseDto> {
-    const result = await this.productsService.findBookmarked(
-      authUser,
-      query,
-    );
-    return PaginatedProductsResponseDto.from(result, req, authUser.id);
-  }
-
-  @Get('user')
-  @ApiOperation({ summary: 'Get products of a user filtered by status with pagination and sorting' })
-  @ApiResponse({ status: 200, description: 'Filtered products list with pagination info' })
-  async getUserProducts(
     @AuthUser() authUser: User,
     @Query(new ValidationPipe({ transform: true, whitelist: true }))
     query: UserProductsQueryDto,
     @Req() req?: Request,
   ): Promise<PaginatedProductsResponseDto> {
-    const result = await this.productsService.findByUser(authUser, query);
+    let result;
+    if (query.status === ProductUserStatus.BOOKMARKS) {
+      result = await this.productsService.findBookmarked(
+        authUser,
+        query,
+        query.user ?? authUser.id,
+      );
+    } else if (query.user !== undefined || query.status !== undefined) {
+      result = await this.productsService.findByUser(authUser, query);
+    } else {
+      result = await this.productsService.findAll(authUser, query);
+    }
     return PaginatedProductsResponseDto.from(result, req, authUser.id);
   }
 

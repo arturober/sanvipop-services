@@ -6,6 +6,7 @@ export enum ProductUserStatus {
   SELLING = 'selling',
   SOLD = 'sold',
   BOUGHT = 'bought',
+  BOOKMARKS = 'bookmarks',
 }
 
 export class UserProductsQueryDto extends ProductsQueryDto {
@@ -20,11 +21,11 @@ export class UserProductsQueryDto extends ProductsQueryDto {
   user?: number;
 
   /**
-   * Estado de los productos ('selling', 'sold' o 'bought'). Por defecto 'selling'.
+   * Estado de los productos ('selling', 'sold', 'bought' o 'bookmarks')
    * @example "selling"
    */
   @IsOptional()
   @IsEnum(ProductUserStatus)
-  status?: ProductUserStatus = ProductUserStatus.SELLING;
+  status?: ProductUserStatus;
 }
 

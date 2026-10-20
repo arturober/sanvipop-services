@@ -36,7 +36,7 @@ export class AuthService {
   }
 
   async registerUser(userDto: RegisterUserDto): Promise<RegisterResponse> {
-    const photo = await this.imageService.saveImage('users', userDto.avatar);
+    const photo = await this.imageService.saveImage('users', userDto.photo);
     const hashedPassword = await bcrypt.hash(userDto.password, 10);
     const user = this.userRepo.create({
       name: userDto.name,
