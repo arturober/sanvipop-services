@@ -52,7 +52,7 @@ export class ProductsController {
         query,
         query.user ?? authUser.id,
       );
-    } else if (query.user !== undefined || query.status !== undefined) {
+    } else if (query.status !== undefined) {
       result = await this.productsService.findByUser(authUser, query);
     } else {
       result = await this.productsService.findAll(authUser, query);
