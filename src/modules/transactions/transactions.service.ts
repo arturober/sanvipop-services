@@ -11,7 +11,7 @@ import { ProductsRepository } from '../products/products.repository.js';
 import { Transaction } from './entities/transaction.entity.js';
 import { AddRatingDto } from './dto/add-rating.dto.js';
 import { User } from '../users/entities/user.entity.js';
-import { type RatingResponses } from './interfaces/rating-response.js';
+import { type RatingResponses, type SingleRatingResponse } from './interfaces/rating-response.js';
 
 @Injectable()
 export class TransactionsService {
@@ -44,7 +44,10 @@ export class TransactionsService {
     };
   }
 
-  async addRating(ratingDto: AddRatingDto, authUser: User): Promise<void> {
+  async addRating(
+    ratingDto: AddRatingDto,
+    authUser: User,
+  ): Promise<SingleRatingResponse> {
     const product = await this.productRepository.findOne({ id: ratingDto.product });
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -81,5 +84,19 @@ export class TransactionsService {
     }
     this.transactionRepository.getEntityManager().persist(transaction);
     await this.transactionRepository.getEntityManager().flush();
+
+    const otherUser =
+      transaction.seller.id === authUser.id
+        ? transaction.buyer
+        : transaction.seller;
+
+    return {
+      rating: {
+        product: transaction.product,
+        user: otherUser,
+        rating: ratingDto.rating,
+        comment: ratingDto.comment,
+      },
+    };
   }
 }

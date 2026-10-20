@@ -8,6 +8,10 @@ export interface RatingResponse {
   comment?: string | null;
 }
 
+export interface SingleRatingResponse {
+  rating: RatingResponse;
+}
+
 export interface RatingResponses {
   ratings: RatingResponse[];
 }

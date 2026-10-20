@@ -7,7 +7,6 @@ import {
   Post,
   Body,
   ValidationPipe,
-  HttpCode,
   ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -17,11 +16,14 @@ import { AuthUser } from '../../common/decorators/user.decorator.js';
 import { User } from '../users/entities/user.entity.js';
 import { AddRatingDto } from './dto/add-rating.dto.js';
 import { TransactionsService } from './transactions.service.js';
-import { type RatingResponses } from './interfaces/rating-response.js';
+import {
+  type RatingResponses,
+  type SingleRatingResponse,
+} from './interfaces/rating-response.js';
 
 @ApiTags('Transactions')
 @ApiBearerAuth()
-@Controller('ratings')
+@Controller(['ratings', 'products/ratings'])
 @UseGuards(AuthGuard('jwt'))
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
@@ -43,17 +45,16 @@ export class TransactionsController {
   }
 
   @Post()
-  @HttpCode(204)
   @ApiOperation({ summary: 'Create a transaction rating for a sold product' })
-  @ApiResponse({ status: 204, description: 'Rating added successfully' })
+  @ApiResponse({ status: 201, description: 'Rating added successfully' })
   @ApiResponse({ status: 403, description: 'Transaction already rated or user not involved' })
   async createTransaction(
     @AuthUser() authUser: User,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
     ratingDto: AddRatingDto,
-  ): Promise<void> {
+  ): Promise<SingleRatingResponse> {
     try {
-      await this.transactionsService.addRating(ratingDto, authUser);
+      return await this.transactionsService.addRating(ratingDto, authUser);
     } catch (e: any) {
       if (
         e instanceof UniqueConstraintViolationException ||

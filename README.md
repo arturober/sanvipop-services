@@ -38,7 +38,7 @@
     - [**PUT /users/me/photo**](#put-usersmephoto)
     - [**PUT /users/me/password**](#put-usersmepassword)
   - [Colección /ratings](#colección-ratings)
-    - [**POST /ratings**](#post-ratings)
+    - [**POST /ratings** (o **/products/ratings**)](#post-ratings-o-productsratings)
     - [**GET /ratings/user/me**](#get-ratingsuserme)
     - [**GET /ratings/user/:idUser**](#get-ratingsuseriduser)
 
@@ -723,7 +723,7 @@ Actualiza la contraseña del usuario autenticado. La nueva contraseña se cifra 
 
 Todos los servicios requieren cabecera `Authorization: Bearer <auth_token>`.
 
-### **POST /ratings**
+### **POST /ratings** (o **/products/ratings**)
 
 Permite valorar una transacción completada sobre un producto que el usuario autenticado haya comprado o vendido.
 
@@ -747,12 +747,33 @@ Permite valorar una transacción completada sobre un producto que el usuario aut
 - `rating`: Valor entero entre 1 y 5.
 - `comment`: Comentario sobre la transacción.
 
-**Respuesta exitosa (204 No Content):** Sin contenido.
+**Respuesta exitosa (201 Created):**
+
+```json
+{
+  "rating": {
+    "rating": 5,
+    "comment": "Excelente vendedor, producto impecable.",
+    "product": {
+      "id": 1,
+      "title": "Bicicleta de montaña",
+      "price": 150.5,
+      "status": 3
+    },
+    "user": {
+      "id": 2,
+      "name": "María Gómez",
+      "photo": "http://localhost:3000/img/users/1741818000-uuid.jpg"
+    }
+  }
+}
+```
 
 **Errores posibles:**
 - **400 Bad Request**: Datos no válidos.
 - **403 Forbidden**: Si el producto no está vendido, si el usuario no formó parte de la transacción o si ya emitió su valoración anteriormente.
 - **404 Not Found**: Si el producto no existe.
+- **409 Conflict**: Si ya existe una valoración previa por parte del usuario para esta transacción.
 
 ---
 
