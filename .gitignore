@@ -56,10 +56,10 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # SQLite & Database
-*.db
-*.db-journal
-*.db-shm
-*.db-wal
+# *.db
+# *.db-journal
+# *.db-shm
+# *.db-wal
 
 # TypeScript build info
 *.tsbuildinfo
